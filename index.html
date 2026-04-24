@@ -303,6 +303,8 @@ function connectSupabase(){
 }
 
 function init(){
+  // Pre-configured — no setup needed
+  if(!getCfg())localStorage.setItem("sb_cfg",JSON.stringify({url:"https://zftaasiaseqenvpefyel.supabase.co",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmdGFhc2lhc2VxZW52cGVmeWVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMDcxMzAsImV4cCI6MjA5MjU4MzEzMH0.1ucDAvSWNVh1mcykhCnPu__1xomszF6wGDWE3jANaYs"}));
   const cfg=getCfg();
   document.getElementById('loadingScreen').style.display='none';
   if(!cfg){document.getElementById('configScreen').classList.add('show');return;}
