@@ -117,7 +117,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .member-card:active{transform:scale(0.97);}
 .member-card-bg{
   position:absolute;inset:0;
+  background-size:cover;
+  background-position:center;
   transition:background 0.3s;
+}
+.member-card-bg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to right, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0) 100%);
 }
 .member-card-content{
   position:absolute;inset:0;
@@ -125,22 +131,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
   display:flex;flex-direction:column;justify-content:space-between;
   z-index:2;
 }
-.member-card-photo{
-  position:absolute;right:0;bottom:0;
-  height:140px;width:130px;
-  object-fit:cover;object-position:top center;
-  z-index:1;
-  mask-image:linear-gradient(to left,black 55%,transparent 100%);
-  -webkit-mask-image:linear-gradient(to left,black 55%,transparent 100%);
-}
-.member-card-initials{
-  position:absolute;right:16px;bottom:12px;
-  width:70px;height:70px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:24px;font-weight:700;
-  background:rgba(0,0,0,0.15);
-  z-index:1;
-}
+
 .member-card-name{
   font-size:22px;font-weight:700;letter-spacing:-0.03em;
   line-height:1.1;max-width:60%;
@@ -264,17 +255,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .mgr-section-title:first-child{margin-top:0;}
 .mgr-member-row{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:0;overflow:hidden;margin-bottom:12px;}
 .mgr-card-preview{height:80px;position:relative;display:flex;align-items:flex-end;padding:10px 14px;}
-.mgr-card-preview-photo{position:absolute;right:0;bottom:0;height:90px;width:80px;object-fit:cover;object-position:top center;mask-image:linear-gradient(to left,black 55%,transparent 100%);-webkit-mask-image:linear-gradient(to left,black 55%,transparent 100%);}
+
 .mgr-card-preview-name{font-size:17px;font-weight:700;letter-spacing:-0.02em;position:relative;z-index:2;}
 .mgr-card-controls{padding:12px 14px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);}
 .mgr-btns-row{display:flex;gap:8px;}
 .mgr-photo-btn{flex:1;padding:9px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;text-align:center;}
 .mgr-photo-btn:active{background:var(--bg4);}
-.mgr-color-label{font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
-.color-swatches{display:flex;flex-wrap:wrap;gap:8px;}
-.color-swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:transform 0.12s,border-color 0.12s;flex-shrink:0;}
-.color-swatch:active{transform:scale(0.9);}
-.color-swatch.selected{border-color:var(--text);transform:scale(1.1);}
+
 .mgr-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0;overflow:hidden;}
 .mgr-avatar img{width:100%;height:100%;object-fit:cover;}
 .mgr-name{flex:1;font-size:15px;font-weight:500;}
@@ -687,47 +674,34 @@ function renderMemberList(){
   if(!members.length){empty.classList.remove('hidden');return;}
   empty.classList.add('hidden');
   members.forEach((m,i)=>{
-    const defaultColor=COLORS[i%COLORS.length];
-    const cardBg=m.cardColor||defaultColor.bg;
-    // Decide text color: dark bg → light text, light bg → dark text
-    const isDark=isColorDark(cardBg);
-    const textColor=isDark?'rgba(255,255,255,0.92)':'rgba(0,0,0,0.85)';
-    const tagBg=isDark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.14)';
+    const fallbackColor=COLORS[i%COLORS.length].bg;
+    // If card bg image exists, always use white text (gradient overlay ensures legibility)
+    const hasImg=!!m.cardBgUrl;
+    const textColor='rgba(255,255,255,0.95)';
+    const tagBg='rgba(0,0,0,0.25)';
 
     const el=document.createElement('div');
     el.className='member-card';
-
-    const photoHtml=m.cardPhotoUrl
-      ?`<img class="member-card-photo" src="${m.cardPhotoUrl}" alt="${esc(m.name||'')}">`
-      :`<div class="member-card-initials" style="color:${textColor}">${ini(m.name)}</div>`;
 
     const age=m.birthday?calcAge(m.birthday):null;
     const tags=[
       age?`${age} yrs`:'',
       m.height?`${m.height} cm`:'',
-    ].filter(Boolean).map(t=>`<span class="member-card-tag">${t}</span>`).join('');
+    ].filter(Boolean).map(t=>`<span class="member-card-tag" style="background:${tagBg}">${t}</span>`).join('');
+
+    const bgStyle=hasImg
+      ?`background-image:url('${m.cardBgUrl}');background-color:${fallbackColor}`
+      :`background-color:${fallbackColor}`;
 
     el.innerHTML=`
-      <div class="member-card-bg" style="background:${cardBg}"></div>
-      ${photoHtml}
+      <div class="member-card-bg" style="${bgStyle}"></div>
       <div class="member-card-content" style="color:${textColor}">
         <div class="member-card-name">${esc(m.name||'')}</div>
-        <div class="member-card-meta" style="--tag-bg:${tagBg}">${tags}</div>
+        <div class="member-card-meta">${tags}</div>
       </div>`;
-    // apply dynamic tag bg
-    el.querySelectorAll('.member-card-tag').forEach(t=>t.style.background=tagBg);
-    el.style.color=textColor;
     el.onclick=()=>openMember(m.id);
     scroll.appendChild(el);
   });
-}
-
-function isColorDark(hex){
-  // Returns true if the color is dark (needs light text)
-  const c=hex.replace('#','');
-  if(c.length<6)return true;
-  const r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);
-  return (r*0.299+g*0.587+b*0.114)<160;
 }
 
 // ── Open member ──
@@ -978,14 +952,16 @@ async function handleFileSelected(e){
 async function handleAvatarSelected(e){
   const file=e.target.files[0];
   if(!file||!avatarTargetMemberId)return;
-  const isCard=String(avatarTargetMemberId).startsWith('card:');
-  const memberId=isCard?avatarTargetMemberId.slice(5):avatarTargetMemberId;
-  const fieldName=isCard?'cardPhotoUrl':'avatarUrl';
-  const maxPx=isCard?600:400;
+  const target=String(avatarTargetMemberId);
+  let memberId, fieldName, maxPx, prefix, label;
+  if(target.startsWith('bg:')){
+    memberId=target.slice(3); fieldName='cardBgUrl'; maxPx=1200; prefix='cardbg'; label='Card background updated!';
+  } else {
+    memberId=target; fieldName='avatarUrl'; maxPx=400; prefix='avatars'; label='Profile photo updated!';
+  }
   showToast('Uploading…');
   try{
-    const blob=await compressImage(file,maxPx,0.85);
-    const prefix=isCard?'cardphotos':'avatars';
+    const blob=await compressImage(file,maxPx,0.88);
     const path=`${prefix}/${memberId}_${Date.now()}.jpg`;
     const{error:upErr}=await sb.storage.from('inbody-photos').upload(path,blob,{contentType:'image/jpeg',upsert:true});
     if(upErr)throw upErr;
@@ -994,7 +970,7 @@ async function handleAvatarSelected(e){
     const blobData=row?(row.data||{}):{};
     blobData[fieldName]=urlData.publicUrl;
     await sb.from('members').update({data:blobData}).eq('id',memberId);
-    showToast(isCard?'Card photo updated!':'Profile photo updated!');
+    showToast(label);
     renderManagerPage();
   }catch(err){showToast('Failed: '+err.message);}
   avatarTargetMemberId=null;
@@ -1107,45 +1083,32 @@ function closeManager(){
   document.getElementById('managerPage').classList.remove('active');
   document.getElementById('memberListPage').classList.add('active');
 }
-// Preset color palette for cards
-const CARD_COLORS=[
-  '#c8f55a','#b8a9f0','#f0c87a','#7ad4f0',
-  '#f09ab0','#7af0c8','#f0a87a','#a8d4f0',
-  '#e8a8f0','#f0d4a8','#a8f0d4','#f0a8a8',
-  '#1e3a5f','#2d1b4e','#1a3a2a','#4a1a2a',
-  '#0e0e0f','#2a2a2a','#1a1a2e','#1e2a1e',
-];
-
 function renderManagerPage(){
   const list=document.getElementById('mgrMemberList');
   list.innerHTML='';
   members.forEach((m,i)=>{
-    const defaultColor=COLORS[i%COLORS.length];
-    const cardBg=m.cardColor||defaultColor.bg;
-    const isDark=isColorDark(cardBg);
-    const textColor=isDark?'rgba(255,255,255,0.92)':'rgba(0,0,0,0.85)';
+    const fallbackColor=COLORS[i%COLORS.length].bg;
     const row=document.createElement('div');
     row.className='mgr-member-row';
-    const photoHtml=m.cardPhotoUrl
-      ?`<img class="mgr-card-preview-photo" src="${m.cardPhotoUrl}" alt="">`:'';
-    // Build swatch HTML
-    const swatches=CARD_COLORS.map(col=>{
-      const sel=col===cardBg?' selected':'';
-      return `<div class="color-swatch${sel}" style="background:${col}" onclick="setCardColor('${m.id}','${col}',this)"></div>`;
-    }).join('');
+    // Preview: bg image or fallback color, person photo on right
+    const bgStyle=m.cardBgUrl
+      ?`background-image:url('${m.cardBgUrl}');background-color:${fallbackColor};background-size:cover;background-position:center`
+      :`background-color:${fallbackColor}`;
+
+    const avatarHtml=m.avatarUrl
+      ?`<img src="${m.avatarUrl}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.4)">`
+      :`<span style="width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff">${ini(m.name)}</span>`;
     row.innerHTML=`
-      <div class="mgr-card-preview" style="background:${cardBg}" id="mgr-preview-${m.id}">
-        ${photoHtml}
-        <div class="mgr-card-preview-name" style="color:${textColor}">${esc(m.name||'')}</div>
+      <div class="mgr-card-preview" style="${bgStyle}" id="mgr-preview-${m.id}">
+        <div style="position:relative;z-index:2;display:flex;align-items:center;gap:8px;">
+          ${avatarHtml}
+          <div class="mgr-card-preview-name" style="color:rgba(255,255,255,0.95);text-shadow:0 1px 4px rgba(0,0,0,0.5)">${esc(m.name||'')}</div>
+        </div>
       </div>
       <div class="mgr-card-controls">
         <div class="mgr-btns-row">
-          <button class="mgr-photo-btn" onclick="pickCardPhoto('${m.id}')">📷 Card photo</button>
-          <button class="mgr-photo-btn" onclick="pickAvatar('${m.id}')">👤 Profile photo</button>
-        </div>
-        <div>
-          <div class="mgr-color-label">Card colour</div>
-          <div class="color-swatches" id="swatches-${m.id}">${swatches}</div>
+          <button class="mgr-photo-btn" onclick="pickCardBg('${m.id}')">🖼 Card background<br><span style="font-size:10px;opacity:0.6">750 × 390 px</span></button>
+          <button class="mgr-photo-btn" onclick="pickAvatar('${m.id}')">👤 Profile photo<br><span style="font-size:10px;opacity:0.6">400 × 400 px</span></button>
         </div>
       </div>`;
     list.appendChild(row);
@@ -1153,36 +1116,11 @@ function renderManagerPage(){
   if(!members.length) list.innerHTML='<p style="color:var(--text3);font-size:14px;padding:8px 0;">No members yet.</p>';
 }
 
-async function setCardColor(memberId,color,el){
-  // Update swatch selection UI
-  const container=document.getElementById('swatches-'+memberId);
-  if(container) container.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
-  el.classList.add('selected');
-  // Update preview
-  const preview=document.getElementById('mgr-preview-'+memberId);
-  if(preview){
-    preview.style.background=color;
-    const isDark=isColorDark(color);
-    const textColor=isDark?'rgba(255,255,255,0.92)':'rgba(0,0,0,0.85)';
-    const nameEl=preview.querySelector('.mgr-card-preview-name');
-    if(nameEl)nameEl.style.color=textColor;
-  }
-  // Save to DB
-  try{
-    const{data:row}=await sb.from('members').select('data').eq('id',memberId).single();
-    const blob=row?(row.data||{}):{};
-    blob.cardColor=color;
-    await sb.from('members').update({data:blob}).eq('id',memberId);
-    showToast('Colour saved!');
-  }catch(err){showToast('Error: '+err.message);}
-}
-
-function pickCardPhoto(memberId){
-  avatarTargetMemberId='card:'+memberId;
+function pickCardBg(memberId){
+  avatarTargetMemberId='bg:'+memberId;
   document.getElementById('avatarInput').value='';
   document.getElementById('avatarInput').click();
 }
-
 function pickAvatar(memberId){
   avatarTargetMemberId=memberId;
   document.getElementById('avatarInput').value='';
