@@ -19,6 +19,7 @@
   --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
   --text:#f0f0f2; --text2:#9898a6; --text3:#5a5a68;
   --accent:#c8f55a; --accent-text:#0e0e0f; --red:#ff5f5f;
+  --green:#4ade80; --grey:#3a3a3f;
   --radius:14px; --radius-sm:8px;
   --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -27,16 +28,16 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .spinner{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--bg4);border-top-color:var(--accent);animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* Loading */
+/* ── Loading ── */
 #loadingScreen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;z-index:999;}
-.loading-logo{font-size:24px;font-weight:600;letter-spacing:-0.02em;}
+.loading-logo{font-size:22px;font-weight:600;letter-spacing:-0.02em;}
 .loading-logo span{color:var(--accent);}
 .loading-status{font-size:13px;color:var(--text3);}
 
-/* Config */
+/* ── Config ── */
 #configScreen{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;overflow-y:auto;padding:calc(var(--safe-top) + 32px) 24px calc(var(--safe-bottom) + 32px);z-index:998;}
 #configScreen.show{display:flex;}
-.cfg-logo{font-size:26px;font-weight:700;letter-spacing:-0.03em;margin-bottom:8px;}
+.cfg-logo{font-size:24px;font-weight:700;letter-spacing:-0.03em;margin-bottom:8px;}
 .cfg-logo span{color:var(--accent);}
 .cfg-sub{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:28px;}
 .cfg-steps{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
@@ -51,24 +52,25 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .cfg-error{font-size:13px;color:var(--red);margin-bottom:12px;display:none;padding:10px 12px;background:rgba(255,95,95,0.1);border-radius:var(--radius-sm);border:1px solid rgba(255,95,95,0.2);}
 .cfg-hint{font-size:12px;color:var(--text3);margin-top:12px;line-height:1.6;text-align:center;}
 
-/* App */
+/* ── App shell ── */
 #app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
 .page{display:none;flex-direction:column;flex:1;overflow:hidden;}
 .page.active{display:flex;}
 
-/* Topbar */
+/* ── Topbar ── */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--safe-top) + 14px) 20px 14px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;z-index:10;}
 .topbar-logo{font-size:14px;font-weight:600;letter-spacing:-0.01em;}
 .topbar-logo span{color:var(--accent);}
-.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);}
+.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);flex-shrink:0;}
 .icon-btn:active{background:var(--bg4);}
 .icon-btn svg{width:18px;height:18px;}
 
-/* Member list */
+/* ── Member list ── */
 #memberListPage .scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;display:flex;flex-direction:column;gap:10px;}
 .member-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;-webkit-user-select:none;user-select:none;}
 .member-card:active{background:var(--bg3);}
-.member-avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;}
+.member-avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;overflow:hidden;}
+.member-avatar img{width:100%;height:100%;object-fit:cover;}
 .member-info{flex:1;min-width:0;}
 .member-name{font-size:16px;font-weight:500;}
 .member-sub{font-size:13px;color:var(--text2);margin-top:2px;}
@@ -77,28 +79,36 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .empty-list svg{width:48px;height:48px;color:var(--text3);margin-bottom:8px;}
 .empty-list h3{font-size:17px;font-weight:500;color:var(--text);}
 
-/* FAB */
+/* ── FAB ── */
 .fab{position:fixed;bottom:calc(var(--safe-bottom) + 20px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(200,245,90,0.3);cursor:pointer;border:none;z-index:50;}
 .fab:active{transform:scale(0.93);}
 .fab svg{width:22px;height:22px;}
 
-/* Detail */
+/* ── Detail page ── */
 #memberDetailPage{background:var(--bg);}
 .detail-topbar{display:flex;align-items:center;gap:12px;padding:calc(var(--safe-top) + 14px) 16px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .back-btn{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--text2);}
 .back-btn svg{width:18px;height:18px;}
 .detail-topbar-title{flex:1;font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.detail-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 
-/* Profile hero */
-.profile-hero{padding:24px 20px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;}
-.profile-avatar{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600;flex-shrink:0;}
-.profile-name{font-size:20px;font-weight:600;letter-spacing:-0.02em;margin-bottom:8px;}
+/* ── Tab bar ── */
+.tab-bar{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg);}
+.tab-btn{flex:1;padding:11px;text-align:center;font-size:14px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:color 0.15s,border-color 0.15s;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-content{display:none;flex:1;overflow:hidden;flex-direction:column;}
+.tab-content.active{display:flex;}
+
+/* ── Profile hero ── */
+.profile-hero{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-shrink:0;}
+.profile-avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;flex-shrink:0;overflow:hidden;}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;}
+.profile-name{font-size:18px;font-weight:600;letter-spacing:-0.02em;margin-bottom:6px;}
 .profile-tags{display:flex;flex-wrap:wrap;gap:6px;}
 .profile-tag{font-size:12px;padding:4px 10px;border-radius:20px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
 .profile-tag span{color:var(--text);font-weight:500;}
 
-/* Months */
+/* ── Months (InBody tab) ── */
+.detail-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .months-wrapper{padding:16px;display:flex;flex-direction:column;gap:10px;padding-bottom:calc(var(--safe-bottom) + 24px);}
 .month-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
 .month-head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:1px solid transparent;transition:border-color 0.2s;}
@@ -112,7 +122,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .month-body{display:none;padding:16px;flex-direction:column;gap:14px;}
 .month-section.open .month-body{display:flex;}
 
-/* Photo slot */
+/* ── Photo slot ── */
 .photo-slot{width:100%;aspect-ratio:4/3;max-height:220px;border-radius:var(--radius-sm);border:1.5px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg3);}
 .photo-slot.has-photo{border-style:solid;border-color:var(--border);}
 .photo-slot img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -121,7 +131,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .photo-add-label{font-size:13px;color:var(--text2);}
 .photo-uploading{position:absolute;inset:0;background:rgba(0,0,0,0.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-size:13px;color:#fff;}
 
-/* Metrics */
+/* ── Metrics ── */
 .metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .metric-box{background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);padding:12px;}
 .metric-abbr{font-size:13px;font-weight:600;color:var(--accent);font-family:'DM Mono',monospace;}
@@ -131,7 +141,50 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .metric-input:focus{outline:none;border-color:var(--accent);}
 .metric-unit{font-size:12px;color:var(--text3);flex-shrink:0;}
 
-/* Modals */
+/* ── Calendar tab ── */
+.cal-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.cal-wrapper{padding:16px;padding-bottom:calc(var(--safe-bottom) + 24px);}
+.cal-month-block{margin-bottom:24px;}
+.cal-month-title{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:10px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day-label{font-size:10px;color:var(--text3);text-align:center;padding-bottom:4px;font-weight:500;}
+.cal-day{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:pointer;-webkit-user-select:none;user-select:none;transition:background 0.15s;}
+.cal-day.empty{cursor:default;}
+.cal-day.past-none{background:var(--bg3);color:var(--text3);}
+.cal-day.past-none:active{background:var(--bg4);}
+.cal-day.future{background:var(--bg2);color:var(--text3);cursor:default;}
+.cal-day.worked-out{background:rgba(74,222,128,0.18);color:var(--green);border:1px solid rgba(74,222,128,0.35);}
+.cal-day.worked-out:active{background:rgba(74,222,128,0.28);}
+.cal-day.today{outline:2px solid var(--accent);outline-offset:-2px;}
+.cal-legend{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;}
+.cal-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
+.cal-legend-dot{width:12px;height:12px;border-radius:4px;}
+
+/* ── Manager page ── */
+#managerPage{background:var(--bg);}
+.mgr-topbar{display:flex;align-items:center;gap:12px;padding:calc(var(--safe-top) + 14px) 16px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.mgr-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;padding-bottom:calc(var(--safe-bottom) + 24px);}
+.mgr-section-title{font-size:12px;font-weight:500;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:12px;margin-top:20px;}
+.mgr-section-title:first-child{margin-top:0;}
+.mgr-member-row{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.mgr-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0;overflow:hidden;}
+.mgr-avatar img{width:100%;height:100%;object-fit:cover;}
+.mgr-name{flex:1;font-size:15px;font-weight:500;}
+.mgr-photo-btn{padding:7px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.mgr-photo-btn:active{background:var(--bg4);}
+
+/* ── PIN modal ── */
+#pinModal{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:400;display:none;align-items:center;justify-content:center;padding:24px;}
+#pinModal.open{display:flex;}
+.pin-sheet{background:var(--bg2);border-radius:var(--radius);padding:28px 24px;width:100%;max-width:320px;border:1px solid var(--border2);}
+.pin-title{font-size:17px;font-weight:600;text-align:center;margin-bottom:6px;}
+.pin-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:20px;}
+.pin-input{width:100%;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:22px;font-weight:600;color:var(--text);text-align:center;letter-spacing:0.2em;font-family:'DM Mono',monospace;-webkit-appearance:none;}
+.pin-input:focus{outline:none;border-color:var(--accent);}
+.pin-error{font-size:13px;color:var(--red);text-align:center;margin-top:8px;min-height:18px;}
+.pin-btns{display:flex;gap:10px;margin-top:16px;}
+
+/* ── Modals ── */
 .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center;}
 .modal-backdrop.open{display:flex;}
 .modal-sheet{width:100%;max-width:500px;background:var(--bg2);border-radius:22px 22px 0 0;padding-bottom:calc(var(--safe-bottom) + 16px);border-top:1px solid var(--border2);animation:slideUp 0.22s ease-out;}
@@ -150,7 +203,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .btn-danger{background:var(--red);color:#fff;}
 .delete-row{padding:8px 20px 0;}
 
-/* Photo viewer */
+/* ── Photo viewer ── */
 #photoViewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;flex-direction:column;align-items:center;justify-content:center;}
 #photoViewer.open{display:flex;}
 #photoViewer img{max-width:95vw;max-height:75vh;border-radius:var(--radius-sm);object-fit:contain;}
@@ -159,8 +212,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .viewer-actions{position:absolute;bottom:calc(var(--safe-bottom) + 24px);display:flex;gap:10px;}
 .viewer-btn{padding:10px 22px;border-radius:20px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;}
 
-/* Toast */
-#toast{position:fixed;bottom:calc(var(--safe-bottom) + 84px);left:50%;transform:translateX(-50%) translateY(6px);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:opacity 0.2s,transform 0.2s;z-index:500;white-space:nowrap;pointer-events:none;}
+/* ── Toast ── */
+#toast{position:fixed;bottom:calc(var(--safe-bottom) + 84px);left:50%;transform:translateX(-50%) translateY(6px);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:opacity 0.2s,transform 0.2s;z-index:600;white-space:nowrap;pointer-events:none;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 ::-webkit-scrollbar{width:0;}
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
@@ -170,15 +223,17 @@ input[type=date]{color-scheme:dark;}
 </head>
 <body>
 
+<!-- Loading -->
 <div id="loadingScreen">
   <div class="loading-logo">Green Goddesses <span>InBody</span></div>
   <div class="spinner"></div>
   <div class="loading-status" id="loadingStatus">Starting…</div>
 </div>
 
+<!-- Config -->
 <div id="configScreen">
   <div class="cfg-logo">Green Goddesses <span>InBody</span></div>
-  <div class="cfg-sub">Connect your free Supabase project — shared data across your whole group, real-time, no credit card needed.</div>
+  <div class="cfg-sub">Connect your free Supabase project — shared data across your whole group, real-time.</div>
   <div class="cfg-steps">
     <div class="cfg-step"><strong>1.</strong> Go to <a href="https://supabase.com" target="_blank">supabase.com</a> → Sign up → New project</div>
     <div class="cfg-step"><strong>2.</strong> Left sidebar → <strong>Table Editor</strong> → New table → name: <code>members</code> → turn off Row Level Security → add column: name <code>data</code>, type <code>jsonb</code> → Save</div>
@@ -197,17 +252,19 @@ input[type=date]{color-scheme:dark;}
   </div>
   <div class="cfg-error" id="cfgError"></div>
   <button onclick="connectSupabase()" style="width:100%;padding:14px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Connect</button>
-  <div class="cfg-hint">Everyone in the group enters this once on their own device. The config stays on-device only.</div>
+  <div class="cfg-hint">Everyone in the group enters this once on their own device.</div>
 </div>
 
+<!-- App -->
 <div id="app">
   <div class="topbar">
     <div class="topbar-logo">Green Goddesses <span>InBody</span></div>
-    <div class="icon-btn" onclick="openSettings()">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <div class="icon-btn" onclick="openManagerEntry()" title="Manager">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
     </div>
   </div>
 
+  <!-- Member list -->
   <div id="memberListPage" class="page active">
     <div id="memberListEmpty" class="empty-list hidden">
       <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -220,6 +277,7 @@ input[type=date]{color-scheme:dark;}
     </button>
   </div>
 
+  <!-- Member detail -->
   <div id="memberDetailPage" class="page">
     <div class="detail-topbar">
       <div class="back-btn" onclick="goBack()">
@@ -230,13 +288,69 @@ input[type=date]{color-scheme:dark;}
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </div>
     </div>
-    <div class="detail-scroll">
-      <div class="profile-hero" id="profileHero"></div>
-      <div class="months-wrapper" id="monthsWrapper"></div>
+
+    <!-- Profile hero (shared across both tabs) -->
+    <div class="profile-hero" id="profileHero"></div>
+
+    <!-- Tab bar -->
+    <div class="tab-bar">
+      <div class="tab-btn active" id="tabInBodyBtn" onclick="switchTab('inbody')">InBody</div>
+      <div class="tab-btn" id="tabCalBtn" onclick="switchTab('calendar')">Calendar</div>
+    </div>
+
+    <!-- InBody tab -->
+    <div class="tab-content active" id="tabInBody">
+      <div class="detail-scroll">
+        <div class="months-wrapper" id="monthsWrapper"></div>
+      </div>
+    </div>
+
+    <!-- Calendar tab -->
+    <div class="tab-content" id="tabCalendar">
+      <div class="cal-scroll">
+        <div class="cal-wrapper">
+          <div class="cal-legend">
+            <div class="cal-legend-item">
+              <div class="cal-legend-dot" style="background:rgba(74,222,128,0.18);border:1px solid rgba(74,222,128,0.35)"></div>
+              Worked out
+            </div>
+            <div class="cal-legend-item">
+              <div class="cal-legend-dot" style="background:var(--bg3)"></div>
+              No record
+            </div>
+          </div>
+          <div id="calContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manager page -->
+  <div id="managerPage" class="page">
+    <div class="mgr-topbar">
+      <div class="back-btn" onclick="closeManager()">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+      <div class="detail-topbar-title">Manager</div>
+    </div>
+    <div class="mgr-scroll" id="mgrScroll">
+      <div class="mgr-section-title">Member Profile Photos</div>
+      <div id="mgrMemberList"></div>
+      <div class="mgr-section-title" style="margin-top:28px;">Manager PIN</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 16px 4px;">
+        <div class="form-field" style="padding:0;margin-bottom:13px;">
+          <label class="form-label">New PIN (4–8 digits)</label>
+          <input class="form-input" id="newPinInput" type="tel" placeholder="Enter new PIN" autocomplete="off" style="background:var(--bg3);">
+        </div>
+        <div class="modal-btns" style="padding:0;margin-bottom:13px;">
+          <button class="btn btn-primary" onclick="savePin()">Update PIN</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Member modal -->
 <div class="modal-backdrop" id="memberModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -263,6 +377,22 @@ input[type=date]{color-scheme:dark;}
   </div>
 </div>
 
+<!-- PIN modal -->
+<div id="pinModal">
+  <div class="pin-sheet">
+    <div class="pin-title">Manager Access</div>
+    <div class="pin-sub">Enter your PIN to continue</div>
+    <input class="pin-input" id="pinInput" type="tel" maxlength="8" placeholder="••••" autocomplete="off"
+      oninput="pinInputChanged()" onkeydown="if(event.key==='Enter')submitPin()">
+    <div class="pin-error" id="pinError"></div>
+    <div class="pin-btns">
+      <button class="btn btn-ghost" onclick="closePinModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitPin()">Enter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Photo viewer -->
 <div id="photoViewer">
   <button class="viewer-close" onclick="closePhotoViewer()">
     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -276,8 +406,10 @@ input[type=date]{color-scheme:dark;}
 
 <div id="toast"></div>
 <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileSelected(event)">
+<input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarSelected(event)">
 
 <script>
+// ── Constants ──
 const COLORS=[
   {bg:'#1a2a1a',fg:'#7ee87e'},{bg:'#1a1f2e',fg:'#7eaaff'},
   {bg:'#2a1a22',fg:'#f07ec8'},{bg:'#2a221a',fg:'#f0c07e'},
@@ -287,12 +419,20 @@ const COLORS=[
 const MONTHS=[];
 for(let i=0;i<36;i++){
   const d=new Date(2026,3+i,1);
-  MONTHS.push({key:d.getFullYear()+'-'+String(d.getMonth()).padStart(2,'0'),label:d.toLocaleDateString('en-US',{month:'long',year:'numeric'})});
+  MONTHS.push({key:d.getFullYear()+'-'+String(d.getMonth()).padStart(2,'0'),label:d.toLocaleDateString('en-US',{month:'long',year:'numeric'}),year:d.getFullYear(),month:d.getMonth()});
 }
+const DEFAULT_PIN='1234';
+const CAL_START=new Date(2026,3,1); // April 2026
 
-let sb=null,members=[],currentMemberId=null,editingMemberId=null,photoCtx=null,viewerCtx=null,realtimeCh=null;
+// ── State ──
+let sb=null,members=[],currentMemberId=null,editingMemberId=null;
+let photoCtx=null,viewerCtx=null,realtimeCh=null;
+let avatarTargetMemberId=null;
+let currentTab='inbody';
 
+// ── Config ──
 function getCfg(){try{return JSON.parse(localStorage.getItem('sb_cfg')||'null');}catch{return null;}}
+function getPin(){return localStorage.getItem('mgr_pin')||DEFAULT_PIN;}
 function showCfgErr(m){const e=document.getElementById('cfgError');e.textContent=m;e.style.display='block';}
 
 function connectSupabase(){
@@ -305,8 +445,9 @@ function connectSupabase(){
   initSb({url,key});
 }
 
+// ── Init ──
 function init(){
-  if(!getCfg())localStorage.setItem("sb_cfg",JSON.stringify({url:"https://zftaasiaseqenvpefyel.supabase.co",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmdGFhc2lhc2VxZW52cGVmeWVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMDcxMzAsImV4cCI6MjA5MjU4MzEzMH0.1ucDAvSWNVh1mcykhCnPu__1xomszF6wGDWE3jANaYs"}));
+  if(!getCfg())localStorage.setItem('sb_cfg',JSON.stringify({url:'https://zftaasiaseqenvpefyel.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmdGFhc2lhc2VxZW52cGVmeWVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMDcxMzAsImV4cCI6MjA5MjU4MzEzMH0.1ucDAvSWNVh1mcykhCnPu__1xomszF6wGDWE3jANaYs'}));
   const cfg=getCfg();
   document.getElementById('loadingScreen').style.display='none';
   if(!cfg){document.getElementById('configScreen').classList.add('show');return;}
@@ -319,7 +460,7 @@ function initSb(cfg){
   document.getElementById('loadingStatus').textContent='Connecting to Supabase…';
   const t=setTimeout(()=>{
     document.getElementById('loadingScreen').style.display='none';
-    showCfgErr('Timed out. Check your URL/key and internet connection.');
+    showCfgErr('Timed out. Check your URL/key and internet.');
     document.getElementById('configScreen').classList.add('show');
   },10000);
   try{
@@ -329,7 +470,7 @@ function initSb(cfg){
       if(error){
         document.getElementById('loadingScreen').style.display='none';
         let msg='Error: '+error.message;
-        if(error.message.includes('relation')||error.message.includes('does not exist'))msg+=' — Make sure you created the "members" table in Supabase.';
+        if(error.message.includes('relation')||error.message.includes('does not exist'))msg+=' — Make sure you created the "members" table.';
         showCfgErr(msg);
         document.getElementById('configScreen').classList.add('show');
         return;
@@ -361,6 +502,7 @@ function subscribeRT(){
     .subscribe();
 }
 
+// ── Member list ──
 function renderMemberList(){
   const scroll=document.getElementById('memberListScroll');
   const empty=document.getElementById('memberListEmpty');
@@ -371,7 +513,10 @@ function renderMemberList(){
     const c=COLORS[i%COLORS.length];
     const el=document.createElement('div');
     el.className='member-card';
-    el.innerHTML=`<div class="member-avatar" style="background:${c.bg};color:${c.fg}">${ini(m.name)}</div>
+    const avatarHtml=m.avatarUrl
+      ?`<img src="${m.avatarUrl}" alt="">`
+      :ini(m.name);
+    el.innerHTML=`<div class="member-avatar" style="${m.avatarUrl?'':'background:'+c.bg+';color:'+c.fg}">${avatarHtml}</div>
       <div class="member-info"><div class="member-name">${esc(m.name||'')}</div>
       <div class="member-sub">${m.birthday?calcAge(m.birthday)+' yrs':''}${m.height?(m.birthday?'  ·  ':'')+m.height+' cm':''}</div></div>
       <div class="member-arrow"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>`;
@@ -380,11 +525,13 @@ function renderMemberList(){
   });
 }
 
+// ── Open member ──
 function openMember(id){
   currentMemberId=id;
   const m=members.find(x=>x.id===id);if(!m)return;
   document.getElementById('memberListPage').classList.remove('active');
   document.getElementById('memberDetailPage').classList.add('active');
+  switchTab('inbody');
   renderMemberDetail(m);
 }
 
@@ -392,17 +539,34 @@ function renderMemberDetail(m){
   const i=members.findIndex(x=>x.id===m.id);
   const c=COLORS[i%COLORS.length];
   document.getElementById('detailTitle').textContent=m.name||'';
+  const avatarHtml=m.avatarUrl
+    ?`<img src="${m.avatarUrl}" alt="">`
+    :ini(m.name);
   document.getElementById('profileHero').innerHTML=`
-    <div class="profile-avatar" style="background:${c.bg};color:${c.fg}">${ini(m.name)}</div>
+    <div class="profile-avatar" style="${m.avatarUrl?'':'background:'+c.bg+';color:'+c.fg}">${avatarHtml}</div>
     <div><div class="profile-name">${esc(m.name||'')}</div>
     <div class="profile-tags">
       ${m.birthday?`<div class="profile-tag">🎂 <span>${fmtD(m.birthday)}</span></div>`:''}
       <div class="profile-tag">Age <span>${calcAge(m.birthday)}</span></div>
       ${m.height?`<div class="profile-tag">Height <span>${m.height} cm</span></div>`:''}
     </div></div>`;
-  renderMonths(m);
+  if(currentTab==='inbody') renderMonths(m);
+  else renderCalendar(m);
 }
 
+// ── Tab switching ──
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById('tabInBodyBtn').classList.toggle('active',tab==='inbody');
+  document.getElementById('tabCalBtn').classList.toggle('active',tab==='calendar');
+  document.getElementById('tabInBody').classList.toggle('active',tab==='inbody');
+  document.getElementById('tabCalendar').classList.toggle('active',tab==='calendar');
+  const m=members.find(x=>x.id===currentMemberId);if(!m)return;
+  if(tab==='inbody') renderMonths(m);
+  else renderCalendar(m);
+}
+
+// ── InBody months ──
 function renderMonths(m){
   const w=document.getElementById('monthsWrapper');
   const open=new Set([...w.querySelectorAll('.month-section.open')].map(e=>e.dataset.key));
@@ -452,6 +616,56 @@ function mBox(mid,key,field,abbr,name,unit,val){
     </div></div>`;
 }
 
+// ── Calendar tab ──
+function renderCalendar(m){
+  const container=document.getElementById('calContainer');
+  container.innerHTML='';
+  const workouts=m.workouts||{};
+  const today=new Date();
+  today.setHours(0,0,0,0);
+
+  MONTHS.forEach(({year,month,label})=>{
+    const block=document.createElement('div');
+    block.className='cal-month-block';
+    const daysInMonth=new Date(year,month+1,0).getDate();
+    const firstDow=new Date(year,month,1).getDay(); // 0=Sun
+    let html=`<div class="cal-month-title">${label}</div><div class="cal-grid">`;
+    ['S','M','T','W','T','F','S'].forEach(d=>{html+=`<div class="cal-day-label">${d}</div>`;});
+    for(let e=0;e<firstDow;e++) html+=`<div class="cal-day empty"></div>`;
+    for(let day=1;day<=daysInMonth;day++){
+      const dateKey=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const d=new Date(year,month,day);
+      const isFuture=d>today;
+      const isToday=d.getTime()===today.getTime();
+      const workedOut=!!workouts[dateKey];
+      let cls='cal-day';
+      if(isFuture) cls+=' future';
+      else if(workedOut) cls+=' worked-out';
+      else cls+=' past-none';
+      if(isToday) cls+=' today';
+      const onclick=isFuture?'':`onclick="toggleWorkout('${m.id}','${dateKey}')"`;
+      html+=`<div class="${cls}" ${onclick}>${day}</div>`;
+    }
+    html+='</div>';
+    block.innerHTML=html;
+    container.appendChild(block);
+  });
+}
+
+async function toggleWorkout(memberId,dateKey){
+  const m=members.find(x=>x.id===memberId);if(!m)return;
+  const workouts={...(m.workouts||{})};
+  if(workouts[dateKey]) delete workouts[dateKey];
+  else workouts[dateKey]=1;
+  try{
+    const{data:row}=await sb.from('members').select('data').eq('id',memberId).single();
+    const blob=row?(row.data||{}):{};
+    blob.workouts=workouts;
+    await sb.from('members').update({data:blob}).eq('id',memberId);
+  }catch(err){showToast('Save failed: '+err.message);}
+}
+
+// ── Photo handling ──
 function photoClick(memberId,monthKey){
   const m=members.find(x=>x.id===memberId);
   const d=m&&m.monthData&&m.monthData[monthKey];
@@ -465,13 +679,9 @@ function photoClick(memberId,monthKey){
     document.getElementById('fileInput').click();
   }
 }
-
 function triggerChangePhoto(){
   closePhotoViewer();
-  if(viewerCtx){
-    photoCtx={...viewerCtx};
-    setTimeout(()=>{document.getElementById('fileInput').value='';document.getElementById('fileInput').click();},300);
-  }
+  if(viewerCtx){photoCtx={...viewerCtx};setTimeout(()=>{document.getElementById('fileInput').value='';document.getElementById('fileInput').click();},300);}
 }
 function closePhotoViewer(){document.getElementById('photoViewer').classList.remove('open');}
 
@@ -490,13 +700,34 @@ async function handleFileSelected(e){
     await saveMonthField(memberId,monthKey,'photoUrl',urlData.publicUrl);
     showToast('Photo saved!');
   }catch(err){
-    console.error(err);
-    showToast('Upload failed: '+err.message);
+    console.error(err);showToast('Upload failed: '+err.message);
     const m=members.find(x=>x.id===memberId);if(m)renderMonths(m);
   }
   photoCtx=null;
 }
 
+// ── Avatar (manager) ──
+async function handleAvatarSelected(e){
+  const file=e.target.files[0];
+  if(!file||!avatarTargetMemberId)return;
+  showToast('Uploading…');
+  try{
+    const blob=await compressImage(file,400,0.85);
+    const path=`avatars/${avatarTargetMemberId}_${Date.now()}.jpg`;
+    const{error:upErr}=await sb.storage.from('inbody-photos').upload(path,blob,{contentType:'image/jpeg',upsert:true});
+    if(upErr)throw upErr;
+    const{data:urlData}=sb.storage.from('inbody-photos').getPublicUrl(path);
+    const{data:row}=await sb.from('members').select('data').eq('id',avatarTargetMemberId).single();
+    const blobData=row?(row.data||{}):{};
+    blobData.avatarUrl=urlData.publicUrl;
+    await sb.from('members').update({data:blobData}).eq('id',avatarTargetMemberId);
+    showToast('Photo updated!');
+    renderManagerPage();
+  }catch(err){showToast('Failed: '+err.message);}
+  avatarTargetMemberId=null;
+}
+
+// ── Compress ──
 function compressImage(file,maxPx,quality){
   return new Promise((res,rej)=>{
     const img=new Image(),url=URL.createObjectURL(file);
@@ -512,13 +743,13 @@ function compressImage(file,maxPx,quality){
   });
 }
 
+// ── Save metric ──
 async function saveMetric(memberId,monthKey,field,value){
   const v=value.trim();if(!v)return;
   const n=parseFloat(v);if(isNaN(n))return;
   try{await saveMonthField(memberId,monthKey,field,n);}
   catch(err){showToast('Save failed: '+err.message);}
 }
-
 async function saveMonthField(memberId,monthKey,field,value){
   const{data:row,error:fe}=await sb.from('members').select('data').eq('id',memberId).single();
   if(fe)throw fe;
@@ -530,6 +761,66 @@ async function saveMonthField(memberId,monthKey,field,value){
   if(error)throw error;
 }
 
+// ── Manager / PIN ──
+function openManagerEntry(){
+  document.getElementById('pinInput').value='';
+  document.getElementById('pinError').textContent='';
+  document.getElementById('pinModal').classList.add('open');
+  setTimeout(()=>document.getElementById('pinInput').focus(),200);
+}
+function closePinModal(){document.getElementById('pinModal').classList.remove('open');}
+function pinInputChanged(){document.getElementById('pinError').textContent='';}
+function submitPin(){
+  const entered=document.getElementById('pinInput').value.trim();
+  if(entered===getPin()){
+    closePinModal();
+    openManager();
+  }else{
+    document.getElementById('pinError').textContent='Incorrect PIN. Try again.';
+    document.getElementById('pinInput').value='';
+    document.getElementById('pinInput').focus();
+  }
+}
+
+function openManager(){
+  document.getElementById('memberListPage').classList.remove('active');
+  document.getElementById('memberDetailPage').classList.remove('active');
+  document.getElementById('managerPage').classList.add('active');
+  renderManagerPage();
+}
+function closeManager(){
+  document.getElementById('managerPage').classList.remove('active');
+  document.getElementById('memberListPage').classList.add('active');
+}
+function renderManagerPage(){
+  const list=document.getElementById('mgrMemberList');
+  list.innerHTML='';
+  members.forEach((m,i)=>{
+    const c=COLORS[i%COLORS.length];
+    const avatarHtml=m.avatarUrl?`<img src="${m.avatarUrl}" alt="">`:`<span>${ini(m.name)}</span>`;
+    const row=document.createElement('div');
+    row.className='mgr-member-row';
+    row.innerHTML=`<div class="mgr-avatar" style="${m.avatarUrl?'':'background:'+c.bg+';color:'+c.fg}">${avatarHtml}</div>
+      <div class="mgr-name">${esc(m.name||'')}</div>
+      <button class="mgr-photo-btn" onclick="pickAvatar('${m.id}')">Change photo</button>`;
+    list.appendChild(row);
+  });
+  if(!members.length) list.innerHTML='<p style="color:var(--text3);font-size:14px;padding:8px 0;">No members yet.</p>';
+}
+function pickAvatar(memberId){
+  avatarTargetMemberId=memberId;
+  document.getElementById('avatarInput').value='';
+  document.getElementById('avatarInput').click();
+}
+function savePin(){
+  const val=document.getElementById('newPinInput').value.trim();
+  if(!/^\d{4,8}$/.test(val)){showToast('PIN must be 4–8 digits');return;}
+  localStorage.setItem('mgr_pin',val);
+  document.getElementById('newPinInput').value='';
+  showToast('PIN updated!');
+}
+
+// ── Member CRUD ──
 function openAddMember(){
   editingMemberId=null;
   document.getElementById('memberModalTitle').textContent='Add member';
@@ -541,7 +832,6 @@ function openAddMember(){
   document.getElementById('memberModal').classList.add('open');
   setTimeout(()=>document.getElementById('fName').focus(),150);
 }
-
 function openEditMember(){
   const m=members.find(x=>x.id===currentMemberId);if(!m)return;
   editingMemberId=m.id;
@@ -553,7 +843,6 @@ function openEditMember(){
   document.getElementById('deleteRow').classList.remove('hidden');
   document.getElementById('memberModal').classList.add('open');
 }
-
 async function saveMember(){
   const name=document.getElementById('fName').value.trim();
   if(!name){document.getElementById('fName').focus();return;}
@@ -568,12 +857,11 @@ async function saveMember(){
       await sb.from('members').update({data:blob}).eq('id',editingMemberId);
       showToast('Profile updated');
     }else{
-      await sb.from('members').insert({data:{name,birthday,height,monthData:{}}});
+      await sb.from('members').insert({data:{name,birthday,height,monthData:{},workouts:{}}});
       showToast('Member added!');
     }
   }catch(err){showToast('Error: '+err.message);}
 }
-
 async function deleteMember(){
   if(!editingMemberId)return;
   if(!confirm('Delete this member? This cannot be undone.'))return;
@@ -582,23 +870,21 @@ async function deleteMember(){
   catch(err){showToast('Error: '+err.message);}
 }
 
+// ── Navigation ──
 function goBack(){
   currentMemberId=null;
   document.getElementById('memberDetailPage').classList.remove('active');
   document.getElementById('memberListPage').classList.add('active');
 }
-
-function openSettings(){
-  if(confirm('Reset Supabase config on this device?\n\nOther devices are not affected.')){
-    localStorage.removeItem('sb_cfg');location.reload();
-  }
-}
-
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-backdrop').forEach(el=>{
   el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});
 });
+document.getElementById('pinModal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('pinModal'))closePinModal();
+});
 
+// ── Helpers ──
 function ini(n){return(n||'?').split(' ').map(p=>p[0]).join('').toUpperCase().slice(0,2);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function calcAge(b){
