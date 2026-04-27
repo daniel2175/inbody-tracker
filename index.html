@@ -722,40 +722,6 @@ function subscribeRT(){
     .subscribe();
 }
 
-// Immediately update local state + re-render without waiting for RT ping
-function refreshMember(memberId, newBlob){
-  const idx=members.findIndex(x=>x.id===memberId);
-  if(idx<0)return;
-  members[idx]={...members[idx],...newBlob};
-  renderMemberList();
-  if(currentMemberId===memberId){
-    const m=members[idx];
-    // Only re-render the active tab to avoid disrupting the other
-    if(currentTab==='inbody') renderMonths(m);
-    else renderCalendar(m);
-    // Also refresh profile hero in case name/avatar changed
-    renderProfileHero(m);
-  }
-}
-
-function renderProfileHero(m){
-  const heroEl=document.getElementById('profileHero');
-  if(!heroEl)return;
-  const i=members.findIndex(x=>x.id===m.id);
-  const c=COLORS[i%COLORS.length];
-  const avatarHtml=m.avatarUrl
-    ?`<img src="${m.avatarUrl}" alt="">`
-    :ini(m.name);
-  heroEl.innerHTML=`
-    <div class="profile-avatar" style="${m.avatarUrl?'':'background:'+c.bg+';color:'+c.fg}">${avatarHtml}</div>
-    <div><div class="profile-name">${esc(m.name||'')}</div>
-    <div class="profile-tags">
-      ${m.birthday?`<div class="profile-tag">🎂 <span>${fmtD(m.birthday)}</span></div>`:''}
-      <div class="profile-tag">Age <span>${calcAge(m.birthday)}</span></div>
-      ${m.height?`<div class="profile-tag">Height <span>${m.height} cm</span></div>`:''}
-    </div></div>`;
-}
-
 // ── Get latest overall score for a member ──
 function getLatestOverall(m){
   const md=m.monthData||{};
@@ -1247,7 +1213,6 @@ async function handleAvatarSelected(e){
     blobData[fieldName]=urlData.publicUrl;
     await sb.from('members').update({data:blobData}).eq('id',memberId);
     showToast(label);
-    refreshMember(memberId, blobData);
     renderManagerPage();
   }catch(err){showToast('Failed: '+err.message);}
   avatarTargetMemberId=null;
@@ -1303,11 +1268,11 @@ async function submitMonthData(memberId,monthKey,btn){
     if(fe)throw fe;
     const blob=row.data||{};
     if(!blob.monthData)blob.monthData={};
+    // Merge pending for this month only
     const monthPending=(pendingInBody[memberId]||{})[monthKey]||{};
     blob.monthData[monthKey]={...(blob.monthData[monthKey]||{}),...monthPending};
     const{error}=await sb.from('members').update({data:blob}).eq('id',memberId);
     if(error)throw error;
-    refreshMember(memberId, blob);
     showToast('Submitted ✓');
   }catch(err){showToast('Submit failed: '+err.message);}
   btn.disabled=false; btn.textContent='Submit'; btn.classList.remove('saving');
@@ -1325,7 +1290,6 @@ async function saveCalendarData(){
     blob.workouts=pendingWorkouts[currentMemberId]||{};
     const{error}=await sb.from('members').update({data:blob}).eq('id',currentMemberId);
     if(error)throw error;
-    refreshMember(currentMemberId, blob);
     showToast('Calendar saved ✓');
   }catch(err){showToast('Save failed: '+err.message);}
   btn.disabled=false; btn.textContent='Save'; btn.classList.remove('saving');
@@ -1345,7 +1309,6 @@ async function saveMonthField(memberId,monthKey,field,value){
   pendingInBody[memberId][monthKey][field]=value;
   const{error}=await sb.from('members').update({data:blob}).eq('id',memberId);
   if(error)throw error;
-  refreshMember(memberId, blob);
 }
 
 // ── Manager / PIN ──
@@ -1465,7 +1428,6 @@ async function saveMember(){
       const blob=row?(row.data||{}):{};
       blob.name=name;blob.birthday=birthday;blob.height=height;
       await sb.from('members').update({data:blob}).eq('id',editingMemberId);
-      refreshMember(editingMemberId, blob);
       showToast('Profile updated');
     }else{
       await sb.from('members').insert({data:{name,birthday,height,monthData:{},workouts:{}}});
