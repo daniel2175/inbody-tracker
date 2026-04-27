@@ -195,6 +195,17 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .photo-slot{width:100%;border-radius:var(--radius-sm);border:1.5px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--bg3);min-height:120px;}.photo-slot.has-photo{display:block;border:1px solid var(--border);background:transparent;min-height:unset;}
 .photo-slot.has-photo{border-style:solid;border-color:var(--border);}
 .photo-slot img{width:100%;height:auto;display:block;border-radius:var(--radius-sm);}
+.photo-slot-wrap{position:relative;display:block;width:100%;}
+.photo-delete-btn{
+  position:absolute;top:8px;right:8px;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(0,0,0,0.55);border:1.5px solid rgba(255,255,255,0.3);
+  color:#fff;font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:10;
+  -webkit-user-select:none;user-select:none;
+}
+.photo-delete-btn:active{background:rgba(220,50,50,0.7);}
 .photo-add-icon{width:48px;height:48px;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;margin-bottom:10px;color:var(--text2);}
 .photo-add-icon svg{width:22px;height:22px;}
 .photo-add-label{font-size:13px;color:var(--text2);}
@@ -553,7 +564,7 @@ input[type=date]{color-scheme:dark;}
   </div>
   <div class="viewer-bottombar">
     <button class="viewer-zoom-btn" onclick="viewerZoom(-0.5)">−</button>
-    <button class="viewer-btn" onclick="triggerChangePhoto()">Change photo</button>
+    <button class="viewer-btn" onclick="closePhotoViewer()">Close</button>
     <button class="viewer-zoom-btn" onclick="viewerZoom(+0.5)">+</button>
   </div>
 </div>
@@ -711,6 +722,40 @@ function subscribeRT(){
     .subscribe();
 }
 
+// Immediately update local state + re-render without waiting for RT ping
+function refreshMember(memberId, newBlob){
+  const idx=members.findIndex(x=>x.id===memberId);
+  if(idx<0)return;
+  members[idx]={...members[idx],...newBlob};
+  renderMemberList();
+  if(currentMemberId===memberId){
+    const m=members[idx];
+    // Only re-render the active tab to avoid disrupting the other
+    if(currentTab==='inbody') renderMonths(m);
+    else renderCalendar(m);
+    // Also refresh profile hero in case name/avatar changed
+    renderProfileHero(m);
+  }
+}
+
+function renderProfileHero(m){
+  const heroEl=document.getElementById('profileHero');
+  if(!heroEl)return;
+  const i=members.findIndex(x=>x.id===m.id);
+  const c=COLORS[i%COLORS.length];
+  const avatarHtml=m.avatarUrl
+    ?`<img src="${m.avatarUrl}" alt="">`
+    :ini(m.name);
+  heroEl.innerHTML=`
+    <div class="profile-avatar" style="${m.avatarUrl?'':'background:'+c.bg+';color:'+c.fg}">${avatarHtml}</div>
+    <div><div class="profile-name">${esc(m.name||'')}</div>
+    <div class="profile-tags">
+      ${m.birthday?`<div class="profile-tag">🎂 <span>${fmtD(m.birthday)}</span></div>`:''}
+      <div class="profile-tag">Age <span>${calcAge(m.birthday)}</span></div>
+      ${m.height?`<div class="profile-tag">Height <span>${m.height} cm</span></div>`:''}
+    </div></div>`;
+}
+
 // ── Get latest overall score for a member ──
 function getLatestOverall(m){
   const md=m.monthData||{};
@@ -843,12 +888,15 @@ function renderMonths(m){
         <svg class="month-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div class="month-body">
-        <div class="photo-slot ${d.photoUrl?'has-photo':''}" id="ps-${key}" onclick="photoClick('${m.id}','${key}')">
-          ${d.photoUrl
-            ?`<img src="${d.photoUrl}" alt="InBody report">`
-            :`<div class="photo-add-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-             <div class="photo-add-label">Upload InBody report photo</div>`}
-        </div>
+        ${d.photoUrl
+          ?`<div class="photo-slot-wrap" id="ps-${key}">
+              <img src="${d.photoUrl}" alt="InBody report" onclick="photoClick('${m.id}','${key}')" style="cursor:zoom-in">
+              <div class="photo-delete-btn" onclick="deletePhoto('${m.id}','${key}')" title="Delete photo">✕</div>
+            </div>`
+          :`<div class="photo-slot" id="ps-${key}" onclick="photoClick('${m.id}','${key}')">
+              <div class="photo-add-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+              <div class="photo-add-label">Upload InBody report photo</div>
+            </div>`}
         ${overallScoreBox(m.id, key, d.overall)}
         <div class="metrics-grid">
           ${mBox(m.id,key,'wt','WT','Weight · 體重','kg',d.wt)}
@@ -1001,18 +1049,27 @@ function photoClick(memberId,monthKey){
   const m=members.find(x=>x.id===memberId);
   const d=m&&m.monthData&&m.monthData[monthKey];
   if(d&&d.photoUrl){
+    // Has photo — open viewer to zoom
     viewerCtx={memberId,monthKey};
     const vImg=document.getElementById('viewerImg');
     vImg.src=d.photoUrl;
     _vResetZoom();
     document.getElementById('photoViewer').classList.add('open');
-    // Setup touch/mouse handlers once
-    setTimeout(_vSetupViewer, 50);
-  }else{
+    setTimeout(_vSetupViewer,50);
+  } else {
+    // No photo — trigger upload
     photoCtx={memberId,monthKey};
     document.getElementById('fileInput').value='';
     document.getElementById('fileInput').click();
   }
+}
+
+async function deletePhoto(memberId,monthKey){
+  if(!confirm('Delete this report photo?'))return;
+  try{
+    await saveMonthField(memberId,monthKey,'photoUrl',null);
+    showToast('Photo deleted');
+  }catch(err){showToast('Error: '+err.message);}
 }
 function triggerChangePhoto(){
   closePhotoViewer();
@@ -1147,6 +1204,11 @@ async function handleFileSelected(e){
   const{memberId,monthKey}=photoCtx;
   const slot=document.getElementById('ps-'+monthKey);
   if(slot)slot.innerHTML=`<div class="photo-uploading"><div class="spinner"></div><span>Uploading…</span></div>`;
+  else{
+    // slot might be photo-slot-wrap — find parent
+    const wrap=document.getElementById('ps-'+monthKey);
+    if(wrap)wrap.innerHTML=`<div class="photo-uploading"><div class="spinner"></div><span>Uploading…</span></div>`;
+  }
   try{
     const blob=await compressImage(file,1200,0.82);
     const path=`${memberId}/${monthKey}_${Date.now()}.jpg`;
@@ -1185,6 +1247,7 @@ async function handleAvatarSelected(e){
     blobData[fieldName]=urlData.publicUrl;
     await sb.from('members').update({data:blobData}).eq('id',memberId);
     showToast(label);
+    refreshMember(memberId, blobData);
     renderManagerPage();
   }catch(err){showToast('Failed: '+err.message);}
   avatarTargetMemberId=null;
@@ -1240,11 +1303,11 @@ async function submitMonthData(memberId,monthKey,btn){
     if(fe)throw fe;
     const blob=row.data||{};
     if(!blob.monthData)blob.monthData={};
-    // Merge pending for this month only
     const monthPending=(pendingInBody[memberId]||{})[monthKey]||{};
     blob.monthData[monthKey]={...(blob.monthData[monthKey]||{}),...monthPending};
     const{error}=await sb.from('members').update({data:blob}).eq('id',memberId);
     if(error)throw error;
+    refreshMember(memberId, blob);
     showToast('Submitted ✓');
   }catch(err){showToast('Submit failed: '+err.message);}
   btn.disabled=false; btn.textContent='Submit'; btn.classList.remove('saving');
@@ -1262,6 +1325,7 @@ async function saveCalendarData(){
     blob.workouts=pendingWorkouts[currentMemberId]||{};
     const{error}=await sb.from('members').update({data:blob}).eq('id',currentMemberId);
     if(error)throw error;
+    refreshMember(currentMemberId, blob);
     showToast('Calendar saved ✓');
   }catch(err){showToast('Save failed: '+err.message);}
   btn.disabled=false; btn.textContent='Save'; btn.classList.remove('saving');
@@ -1281,6 +1345,7 @@ async function saveMonthField(memberId,monthKey,field,value){
   pendingInBody[memberId][monthKey][field]=value;
   const{error}=await sb.from('members').update({data:blob}).eq('id',memberId);
   if(error)throw error;
+  refreshMember(memberId, blob);
 }
 
 // ── Manager / PIN ──
@@ -1400,6 +1465,7 @@ async function saveMember(){
       const blob=row?(row.data||{}):{};
       blob.name=name;blob.birthday=birthday;blob.height=height;
       await sb.from('members').update({data:blob}).eq('id',editingMemberId);
+      refreshMember(editingMemberId, blob);
       showToast('Profile updated');
     }else{
       await sb.from('members').insert({data:{name,birthday,height,monthData:{},workouts:{}}});
