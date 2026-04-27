@@ -144,21 +144,26 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 /* ── Calendar tab ── */
 .cal-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .cal-wrapper{padding:16px;padding-bottom:calc(var(--safe-bottom) + 24px);}
-.cal-month-block{margin-bottom:24px;}
-.cal-month-title{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:10px;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
-.cal-day-label{font-size:10px;color:var(--text3);text-align:center;padding-bottom:4px;font-weight:500;}
-.cal-day{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:pointer;-webkit-user-select:none;user-select:none;transition:background 0.15s;}
+/* Nav header */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cal-nav-btn{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);}
+.cal-nav-btn:active{background:var(--bg4);}
+.cal-nav-btn svg{width:18px;height:18px;}
+.cal-nav-center{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.cal-nav-month{font-size:16px;font-weight:600;color:var(--text);}
+.cal-nav-count{font-size:13px;font-weight:600;color:var(--green);}
+.cal-nav-count.zero{color:var(--text3);}
+/* Grid */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.cal-day-label{font-size:10px;color:var(--text3);text-align:center;padding-bottom:6px;font-weight:500;}
+.cal-day{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;cursor:pointer;-webkit-user-select:none;user-select:none;transition:background 0.15s;}
 .cal-day.empty{cursor:default;}
 .cal-day.past-none{background:var(--bg3);color:var(--text3);}
 .cal-day.past-none:active{background:var(--bg4);}
-.cal-day.future{background:var(--bg2);color:var(--text3);cursor:default;}
+.cal-day.future{background:var(--bg2);color:var(--bg4);cursor:default;}
 .cal-day.worked-out{background:rgba(74,222,128,0.18);color:var(--green);border:1px solid rgba(74,222,128,0.35);}
 .cal-day.worked-out:active{background:rgba(74,222,128,0.28);}
 .cal-day.today{outline:2px solid var(--accent);outline-offset:-2px;}
-.cal-legend{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;}
-.cal-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
-.cal-legend-dot{width:12px;height:12px;border-radius:4px;}
 
 /* ── Manager page ── */
 #managerPage{background:var(--bg);}
@@ -309,14 +314,16 @@ input[type=date]{color-scheme:dark;}
     <div class="tab-content" id="tabCalendar">
       <div class="cal-scroll">
         <div class="cal-wrapper">
-          <div class="cal-legend">
-            <div class="cal-legend-item">
-              <div class="cal-legend-dot" style="background:rgba(74,222,128,0.18);border:1px solid rgba(74,222,128,0.35)"></div>
-              Worked out
+          <div class="cal-nav">
+            <div class="cal-nav-btn" onclick="calPrev()">
+              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
             </div>
-            <div class="cal-legend-item">
-              <div class="cal-legend-dot" style="background:var(--bg3)"></div>
-              No record
+            <div class="cal-nav-center">
+              <div class="cal-nav-month" id="calNavMonth"></div>
+              <div class="cal-nav-count" id="calNavCount"></div>
+            </div>
+            <div class="cal-nav-btn" onclick="calNext()">
+              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
             </div>
           </div>
           <div id="calContainer"></div>
@@ -427,6 +434,7 @@ const CAL_START=new Date(2026,3,1); // April 2026
 // ── State ──
 let sb=null,members=[],currentMemberId=null,editingMemberId=null;
 let photoCtx=null,viewerCtx=null,realtimeCh=null;
+let calMonthIdx=0; // index into MONTHS array
 let avatarTargetMemberId=null;
 let currentTab='inbody';
 
@@ -563,7 +571,13 @@ function switchTab(tab){
   document.getElementById('tabCalendar').classList.toggle('active',tab==='calendar');
   const m=members.find(x=>x.id===currentMemberId);if(!m)return;
   if(tab==='inbody') renderMonths(m);
-  else renderCalendar(m);
+  else {
+    // Jump to current month on first open
+    const now=new Date();
+    const idx=MONTHS.findIndex(mo=>mo.year===now.getFullYear()&&mo.month===now.getMonth());
+    calMonthIdx=idx>=0?idx:0;
+    renderCalendar(m);
+  }
 }
 
 // ── InBody months ──
@@ -617,39 +631,62 @@ function mBox(mid,key,field,abbr,name,unit,val){
 }
 
 // ── Calendar tab ──
+function calPrev(){
+  if(calMonthIdx>0){calMonthIdx--;const m=members.find(x=>x.id===currentMemberId);if(m)renderCalendar(m);}
+}
+function calNext(){
+  if(calMonthIdx<MONTHS.length-1){calMonthIdx++;const m=members.find(x=>x.id===currentMemberId);if(m)renderCalendar(m);}
+}
+
 function renderCalendar(m){
   const container=document.getElementById('calContainer');
-  container.innerHTML='';
   const workouts=m.workouts||{};
   const today=new Date();
   today.setHours(0,0,0,0);
+  const {year,month,label}=MONTHS[calMonthIdx];
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const firstDow=new Date(year,month,1).getDay();
 
-  MONTHS.forEach(({year,month,label})=>{
-    const block=document.createElement('div');
-    block.className='cal-month-block';
-    const daysInMonth=new Date(year,month+1,0).getDate();
-    const firstDow=new Date(year,month,1).getDay(); // 0=Sun
-    let html=`<div class="cal-month-title">${label}</div><div class="cal-grid">`;
-    ['S','M','T','W','T','F','S'].forEach(d=>{html+=`<div class="cal-day-label">${d}</div>`;});
-    for(let e=0;e<firstDow;e++) html+=`<div class="cal-day empty"></div>`;
-    for(let day=1;day<=daysInMonth;day++){
-      const dateKey=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      const d=new Date(year,month,day);
-      const isFuture=d>today;
-      const isToday=d.getTime()===today.getTime();
-      const workedOut=!!workouts[dateKey];
-      let cls='cal-day';
-      if(isFuture) cls+=' future';
-      else if(workedOut) cls+=' worked-out';
-      else cls+=' past-none';
-      if(isToday) cls+=' today';
-      const onclick=isFuture?'':`onclick="toggleWorkout('${m.id}','${dateKey}')"`;
-      html+=`<div class="${cls}" ${onclick}>${day}</div>`;
+  // Count worked-out days (only past/today)
+  let workedCount=0;
+  for(let day=1;day<=daysInMonth;day++){
+    const d=new Date(year,month,day);
+    if(d<=today){
+      const dk=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      if(workouts[dk]) workedCount++;
     }
-    html+='</div>';
-    block.innerHTML=html;
-    container.appendChild(block);
-  });
+  }
+
+  // Update nav header
+  document.getElementById('calNavMonth').textContent=label;
+  const countEl=document.getElementById('calNavCount');
+  countEl.textContent=`${workedCount}/${daysInMonth}`;
+  countEl.className='cal-nav-count'+(workedCount===0?' zero':'');
+
+  // Disable/enable nav buttons
+  document.querySelector('.cal-nav-btn:first-child').style.opacity=calMonthIdx===0?'0.3':'1';
+  document.querySelector('.cal-nav-btn:last-child').style.opacity=calMonthIdx===MONTHS.length-1?'0.3':'1';
+
+  // Build grid
+  let html='<div class="cal-grid">';
+  ['S','M','T','W','T','F','S'].forEach(d=>{html+=`<div class="cal-day-label">${d}</div>`;});
+  for(let e=0;e<firstDow;e++) html+=`<div class="cal-day empty"></div>`;
+  for(let day=1;day<=daysInMonth;day++){
+    const dateKey=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const d=new Date(year,month,day);
+    const isFuture=d>today;
+    const isToday=d.getTime()===today.getTime();
+    const workedOut=!!workouts[dateKey];
+    let cls='cal-day';
+    if(isFuture) cls+=' future';
+    else if(workedOut) cls+=' worked-out';
+    else cls+=' past-none';
+    if(isToday) cls+=' today';
+    const onclick=isFuture?'':`onclick="toggleWorkout('${m.id}','${dateKey}')"`;
+    html+=`<div class="${cls}" ${onclick}>${day}</div>`;
+  }
+  html+='</div>';
+  container.innerHTML=html;
 }
 
 async function toggleWorkout(memberId,dateKey){
