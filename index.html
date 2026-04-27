@@ -308,13 +308,40 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .delete-row{padding:8px 20px 0;}
 
 /* ── Photo viewer ── */
-#photoViewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;flex-direction:column;align-items:center;justify-content:center;}
+#photoViewer{display:none;position:fixed;inset:0;background:#000;z-index:300;flex-direction:column;overflow:hidden;touch-action:none;}
 #photoViewer.open{display:flex;}
-#photoViewer img{max-width:95vw;max-height:75vh;border-radius:var(--radius-sm);object-fit:contain;}
-.viewer-close{position:absolute;top:calc(var(--safe-top) + 16px);right:16px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+/* Pinch-zoom container */
+#viewerCanvas{
+  flex:1;overflow:hidden;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  touch-action:none;cursor:grab;
+}
+#viewerCanvas.grabbing{cursor:grabbing;}
+#viewerImg{
+  max-width:100%;max-height:100%;
+  object-fit:contain;
+  transform-origin:0 0;
+  will-change:transform;
+  pointer-events:none;
+  user-select:none;-webkit-user-select:none;
+  display:block;
+}
+.viewer-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:calc(var(--safe-top) + 12px) 16px 12px;
+  background:rgba(0,0,0,0.6);
+  flex-shrink:0;z-index:2;
+}
+.viewer-close{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .viewer-close svg{width:18px;height:18px;}
-.viewer-actions{position:absolute;bottom:calc(var(--safe-bottom) + 24px);display:flex;gap:10px;}
+.viewer-zoom-label{font-size:13px;color:rgba(255,255,255,0.6);font-family:'DM Mono',monospace;}
+.viewer-bottombar{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:12px 16px calc(var(--safe-bottom) + 16px);
+  background:rgba(0,0,0,0.6);flex-shrink:0;
+}
 .viewer-btn{padding:10px 22px;border-radius:20px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.viewer-zoom-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
 
 /* ── Toast ── */
 #toast{position:fixed;bottom:calc(var(--safe-bottom) + 84px);left:50%;transform:translateX(-50%) translateY(6px);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:opacity 0.2s,transform 0.2s;z-index:600;white-space:nowrap;pointer-events:none;}
@@ -514,13 +541,20 @@ input[type=date]{color-scheme:dark;}
 
 <!-- Photo viewer -->
 <div id="photoViewer">
-  <button class="viewer-close" onclick="closePhotoViewer()">
-    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
-  </button>
-  <img id="viewerImg" src="" alt="InBody report">
-  <div class="viewer-actions">
+  <div class="viewer-topbar">
+    <button class="viewer-close" onclick="closePhotoViewer()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <span class="viewer-zoom-label" id="viewerZoomLabel">1×</span>
+    <div style="width:36px"></div>
+  </div>
+  <div id="viewerCanvas">
+    <img id="viewerImg" src="" alt="InBody report">
+  </div>
+  <div class="viewer-bottombar">
+    <button class="viewer-zoom-btn" onclick="viewerZoom(-0.5)">−</button>
     <button class="viewer-btn" onclick="triggerChangePhoto()">Change photo</button>
-    <button class="viewer-btn" onclick="closePhotoViewer()">Close</button>
+    <button class="viewer-zoom-btn" onclick="viewerZoom(+0.5)">+</button>
   </div>
 </div>
 
@@ -968,8 +1002,12 @@ function photoClick(memberId,monthKey){
   const d=m&&m.monthData&&m.monthData[monthKey];
   if(d&&d.photoUrl){
     viewerCtx={memberId,monthKey};
-    document.getElementById('viewerImg').src=d.photoUrl;
+    const vImg=document.getElementById('viewerImg');
+    vImg.src=d.photoUrl;
+    _vResetZoom();
     document.getElementById('photoViewer').classList.add('open');
+    // Setup touch/mouse handlers once
+    setTimeout(_vSetupViewer, 50);
   }else{
     photoCtx={memberId,monthKey};
     document.getElementById('fileInput').value='';
@@ -980,7 +1018,128 @@ function triggerChangePhoto(){
   closePhotoViewer();
   if(viewerCtx){photoCtx={...viewerCtx};setTimeout(()=>{document.getElementById('fileInput').value='';document.getElementById('fileInput').click();},300);}
 }
-function closePhotoViewer(){document.getElementById('photoViewer').classList.remove('open');}
+
+// ── Pinch / Pan / Zoom viewer ──
+let _vScale=1, _vMinScale=1, _vMaxScale=5;
+let _vTransX=0, _vTransY=0;
+let _vIsPinching=false, _vLastDist=0;
+let _vIsDragging=false, _vDragStartX=0, _vDragStartY=0, _vDragOriginX=0, _vDragOriginY=0;
+let _vLastTap=0;
+
+function _vApplyTransform(){
+  const img=document.getElementById('viewerImg');
+  const canvas=document.getElementById('viewerCanvas');
+  if(!img||!canvas)return;
+  // Clamp translation so image doesn't wander off screen
+  const cw=canvas.clientWidth, ch=canvas.clientHeight;
+  const iw=img.naturalWidth||img.clientWidth, ih=img.naturalHeight||img.clientHeight;
+  const scaledW=Math.min(cw,iw)*_vScale, scaledH=Math.min(ch,ih)*_vScale;
+  const maxX=Math.max(0,(scaledW-cw)/2);
+  const maxY=Math.max(0,(scaledH-ch)/2);
+  _vTransX=Math.max(-maxX,Math.min(maxX,_vTransX));
+  _vTransY=Math.max(-maxY,Math.min(maxY,_vTransY));
+  img.style.transform=`translate(${_vTransX}px,${_vTransY}px) scale(${_vScale})`;
+  const label=document.getElementById('viewerZoomLabel');
+  if(label)label.textContent=_vScale.toFixed(1)+'×';
+}
+
+function viewerZoom(delta){
+  _vScale=Math.max(_vMinScale,Math.min(_vMaxScale,_vScale+delta));
+  if(_vScale===_vMinScale){_vTransX=0;_vTransY=0;}
+  _vApplyTransform();
+}
+
+function _vResetZoom(){
+  _vScale=_vMinScale;_vTransX=0;_vTransY=0;
+  const img=document.getElementById('viewerImg');
+  if(img)img.style.transform='';
+  const label=document.getElementById('viewerZoomLabel');
+  if(label)label.textContent='1×';
+}
+
+function _vDist(t){
+  return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+}
+function _vMidpoint(t){
+  return{x:(t[0].clientX+t[1].clientX)/2,y:(t[0].clientY+t[1].clientY)/2};
+}
+
+function _vSetupViewer(){
+  const canvas=document.getElementById('viewerCanvas');
+  if(!canvas||canvas._viewerReady)return;
+  canvas._viewerReady=true;
+
+  // Touch events
+  canvas.addEventListener('touchstart',e=>{
+    if(e.touches.length===2){
+      _vIsPinching=true;
+      _vLastDist=_vDist(e.touches);
+      e.preventDefault();
+    } else if(e.touches.length===1){
+      const now=Date.now();
+      if(now-_vLastTap<300){
+        // Double tap — toggle zoom
+        _vScale===_vMinScale?viewerZoom(2):_vResetZoom();
+      }
+      _vLastTap=now;
+      _vIsDragging=true;
+      _vDragStartX=e.touches[0].clientX;
+      _vDragStartY=e.touches[0].clientY;
+      _vDragOriginX=_vTransX;
+      _vDragOriginY=_vTransY;
+    }
+  },{passive:false});
+
+  canvas.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(e.touches.length===2&&_vIsPinching){
+      const dist=_vDist(e.touches);
+      const ratio=dist/_vLastDist;
+      _vScale=Math.max(_vMinScale,Math.min(_vMaxScale,_vScale*ratio));
+      _vLastDist=dist;
+      _vApplyTransform();
+    } else if(e.touches.length===1&&_vIsDragging&&_vScale>1){
+      _vTransX=_vDragOriginX+(e.touches[0].clientX-_vDragStartX);
+      _vTransY=_vDragOriginY+(e.touches[0].clientY-_vDragStartY);
+      _vApplyTransform();
+    }
+  },{passive:false});
+
+  canvas.addEventListener('touchend',e=>{
+    if(e.touches.length<2)_vIsPinching=false;
+    if(e.touches.length===0){_vIsDragging=false;}
+  });
+
+  // Mouse wheel zoom (desktop)
+  canvas.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const delta=e.deltaY>0?-0.3:0.3;
+    viewerZoom(delta);
+  },{passive:false});
+
+  // Mouse drag (desktop)
+  canvas.addEventListener('mousedown',e=>{
+    _vIsDragging=true;
+    _vDragStartX=e.clientX;_vDragStartY=e.clientY;
+    _vDragOriginX=_vTransX;_vDragOriginY=_vTransY;
+    canvas.classList.add('grabbing');
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!_vIsDragging)return;
+    _vTransX=_vDragOriginX+(e.clientX-_vDragStartX);
+    _vTransY=_vDragOriginY+(e.clientY-_vDragStartY);
+    _vApplyTransform();
+  });
+  window.addEventListener('mouseup',()=>{
+    _vIsDragging=false;
+    canvas.classList.remove('grabbing');
+  });
+}
+
+function closePhotoViewer(){
+  document.getElementById('photoViewer').classList.remove('open');
+  _vResetZoom();
+}
 
 async function handleFileSelected(e){
   const file=e.target.files[0];
@@ -996,6 +1155,13 @@ async function handleFileSelected(e){
     const{data:urlData}=sb.storage.from('inbody-photos').getPublicUrl(path);
     await saveMonthField(memberId,monthKey,'photoUrl',urlData.publicUrl);
     showToast('Photo saved!');
+    // Auto-open viewer so user can see the uploaded photo full size
+    const vImg2=document.getElementById('viewerImg');
+    vImg2.src=urlData.publicUrl;
+    _vResetZoom();
+    document.getElementById('photoViewer').classList.add('open');
+    viewerCtx={memberId,monthKey};
+    setTimeout(_vSetupViewer,50);
   }catch(err){
     console.error(err);showToast('Upload failed: '+err.message);
     const m=members.find(x=>x.id===memberId);if(m)renderMonths(m);
