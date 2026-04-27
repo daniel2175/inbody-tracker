@@ -179,7 +179,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 /* ── Months (InBody tab) ── */
 .detail-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .months-wrapper{padding:16px;display:flex;flex-direction:column;gap:10px;padding-bottom:calc(var(--safe-bottom) + 24px);}
-.month-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.month-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);}
 .month-head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:1px solid transparent;transition:border-color 0.2s;}
 .month-section.open .month-head{border-bottom-color:var(--border);}
 .month-head-left{display:flex;align-items:center;gap:10px;}
@@ -193,7 +193,6 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 
 /* ── Photo slot ── */
 .photo-slot{width:100%;border-radius:var(--radius-sm);border:1.5px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--bg3);min-height:120px;}.photo-slot.has-photo{display:block;border:1px solid var(--border);background:transparent;min-height:unset;}
-.photo-slot.has-photo{border-style:solid;border-color:var(--border);}
 .photo-slot img{width:100%;height:auto;display:block;border-radius:var(--radius-sm);}
 .photo-slot-wrap{position:relative;display:block;width:100%;}
 .photo-delete-btn{
