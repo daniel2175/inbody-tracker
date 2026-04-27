@@ -165,6 +165,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .cal-day.worked-out:active{background:rgba(74,222,128,0.28);}
 .cal-day.today{outline:2px solid var(--accent);outline-offset:-2px;}
 
+/* ── Save bar ── */
+.save-bar{padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;}
+.save-btn{width:100%;padding:13px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.15s;}
+.save-btn:active{opacity:0.8;}
+.save-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.save-btn.saving{opacity:0.6;}
+
 /* ── Manager page ── */
 #managerPage{background:var(--bg);}
 .mgr-topbar{display:flex;align-items:center;gap:12px;padding:calc(var(--safe-top) + 14px) 16px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -308,6 +315,9 @@ input[type=date]{color-scheme:dark;}
       <div class="detail-scroll">
         <div class="months-wrapper" id="monthsWrapper"></div>
       </div>
+      <div class="save-bar">
+        <button class="save-btn" id="inbodySaveBtn" onclick="saveInBodyData()">Save InBody Data</button>
+      </div>
     </div>
 
     <!-- Calendar tab -->
@@ -328,6 +338,9 @@ input[type=date]{color-scheme:dark;}
           </div>
           <div id="calContainer"></div>
         </div>
+      </div>
+      <div class="save-bar">
+        <button class="save-btn" id="calSaveBtn" onclick="saveCalendarData()">Save Calendar</button>
       </div>
     </div>
   </div>
@@ -437,6 +450,8 @@ let photoCtx=null,viewerCtx=null,realtimeCh=null;
 let calMonthIdx=0; // index into MONTHS array
 let avatarTargetMemberId=null;
 let currentTab='inbody';
+let pendingInBody={};   // { memberId: { monthKey: { field: value } } }
+let pendingWorkouts={}; // { memberId: { dateKey: 0|1 } } — local unsaved state
 
 // ── Config ──
 function getCfg(){try{return JSON.parse(localStorage.getItem('sb_cfg')||'null');}catch{return null;}}
@@ -537,6 +552,9 @@ function renderMemberList(){
 function openMember(id){
   currentMemberId=id;
   const m=members.find(x=>x.id===id);if(!m)return;
+  // Reset pending state for this member
+  pendingInBody[id]=JSON.parse(JSON.stringify(m.monthData||{}));
+  pendingWorkouts[id]=JSON.parse(JSON.stringify(m.workouts||{}));
   document.getElementById('memberListPage').classList.remove('active');
   document.getElementById('memberDetailPage').classList.add('active');
   switchTab('inbody');
@@ -625,7 +643,7 @@ function mBox(mid,key,field,abbr,name,unit,val){
     <div class="metric-row">
       <input class="metric-input" type="number" step="0.1" inputmode="decimal"
         placeholder="—" value="${val!=null?val:''}"
-        onblur="saveMetric('${mid}','${key}','${field}',this.value)">
+        oninput="trackInBodyChange('${mid}','${key}','${field}',this.value)">
       <span class="metric-unit">${unit}</span>
     </div></div>`;
 }
@@ -639,8 +657,14 @@ function calNext(){
 }
 
 function renderCalendar(m){
+  // Init pending workouts from saved data if not already set
+  if(!pendingWorkouts[m.id]) pendingWorkouts[m.id]=JSON.parse(JSON.stringify(m.workouts||{}));
+  renderCalendarFromPending(m);
+}
+
+function renderCalendarFromPending(m){
   const container=document.getElementById('calContainer');
-  const workouts=m.workouts||{};
+  const workouts=pendingWorkouts[m.id]||{};
   const today=new Date();
   today.setHours(0,0,0,0);
   const {year,month,label}=MONTHS[calMonthIdx];
@@ -689,17 +713,14 @@ function renderCalendar(m){
   container.innerHTML=html;
 }
 
-async function toggleWorkout(memberId,dateKey){
+function toggleWorkout(memberId,dateKey){
+  // Only update local pending state — user must press Save
+  if(!pendingWorkouts[memberId]) pendingWorkouts[memberId]={};
+  if(pendingWorkouts[memberId][dateKey]) delete pendingWorkouts[memberId][dateKey];
+  else pendingWorkouts[memberId][dateKey]=1;
+  // Re-render calendar with pending state
   const m=members.find(x=>x.id===memberId);if(!m)return;
-  const workouts={...(m.workouts||{})};
-  if(workouts[dateKey]) delete workouts[dateKey];
-  else workouts[dateKey]=1;
-  try{
-    const{data:row}=await sb.from('members').select('data').eq('id',memberId).single();
-    const blob=row?(row.data||{}):{};
-    blob.workouts=workouts;
-    await sb.from('members').update({data:blob}).eq('id',memberId);
-  }catch(err){showToast('Save failed: '+err.message);}
+  renderCalendarFromPending(m);
 }
 
 // ── Photo handling ──
@@ -780,20 +801,61 @@ function compressImage(file,maxPx,quality){
   });
 }
 
-// ── Save metric ──
-async function saveMetric(memberId,monthKey,field,value){
-  const v=value.trim();if(!v)return;
-  const n=parseFloat(v);if(isNaN(n))return;
-  try{await saveMonthField(memberId,monthKey,field,n);}
-  catch(err){showToast('Save failed: '+err.message);}
+// ── Track InBody changes locally ──
+function trackInBodyChange(memberId,monthKey,field,value){
+  if(!pendingInBody[memberId]) pendingInBody[memberId]={};
+  if(!pendingInBody[memberId][monthKey]) pendingInBody[memberId][monthKey]={};
+  const v=value.trim();
+  const n=parseFloat(v);
+  pendingInBody[memberId][monthKey][field]=isNaN(n)?null:n;
 }
+
+// ── Save InBody (manual) ──
+async function saveInBodyData(){
+  if(!currentMemberId)return;
+  const btn=document.getElementById('inbodySaveBtn');
+  btn.disabled=true; btn.textContent='Saving…'; btn.classList.add('saving');
+  try{
+    const{data:row,error:fe}=await sb.from('members').select('data').eq('id',currentMemberId).single();
+    if(fe)throw fe;
+    const blob=row.data||{};
+    blob.monthData=pendingInBody[currentMemberId]||blob.monthData||{};
+    const{error}=await sb.from('members').update({data:blob}).eq('id',currentMemberId);
+    if(error)throw error;
+    showToast('InBody data saved ✓');
+  }catch(err){showToast('Save failed: '+err.message);}
+  btn.disabled=false; btn.textContent='Save InBody Data'; btn.classList.remove('saving');
+}
+
+// ── Save Calendar (manual) ──
+async function saveCalendarData(){
+  if(!currentMemberId)return;
+  const btn=document.getElementById('calSaveBtn');
+  btn.disabled=true; btn.textContent='Saving…'; btn.classList.add('saving');
+  try{
+    const{data:row,error:fe}=await sb.from('members').select('data').eq('id',currentMemberId).single();
+    if(fe)throw fe;
+    const blob=row.data||{};
+    blob.workouts=pendingWorkouts[currentMemberId]||{};
+    const{error}=await sb.from('members').update({data:blob}).eq('id',currentMemberId);
+    if(error)throw error;
+    showToast('Calendar saved ✓');
+  }catch(err){showToast('Save failed: '+err.message);}
+  btn.disabled=false; btn.textContent='Save Calendar'; btn.classList.remove('saving');
+}
+
 async function saveMonthField(memberId,monthKey,field,value){
+  // Used only for photo URLs (auto-save on upload)
   const{data:row,error:fe}=await sb.from('members').select('data').eq('id',memberId).single();
   if(fe)throw fe;
   const blob=row.data||{};
   if(!blob.monthData)blob.monthData={};
   if(!blob.monthData[monthKey])blob.monthData[monthKey]={};
   blob.monthData[monthKey][field]=value;
+  // Also update pending state so Save button includes the photo URL
+  if(!pendingInBody[memberId]) pendingInBody[memberId]={};
+  if(!pendingInBody[memberId][monthKey]) pendingInBody[memberId][monthKey]={};
+  pendingInBody[memberId][monthKey][field]=value;
   const{error}=await sb.from('members').update({data:blob}).eq('id',memberId);
   if(error)throw error;
 }
