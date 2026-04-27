@@ -167,10 +167,16 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 
 /* ── Save bar ── */
 .save-bar{padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;}
-.save-btn{width:100%;padding:13px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.15s;}
+.save-btn{width:100%;padding:13px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
 .save-btn:active{opacity:0.8;}
 .save-btn:disabled{opacity:0.35;cursor:not-allowed;}
 .save-btn.saving{opacity:0.6;}
+.save-btn.subdued{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);}
+.save-btn.subdued:active{background:var(--bg4);}
+/* Submit inside month */
+.month-submit-btn{width:100%;padding:10px;background:var(--bg4);color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;margin-top:4px;}
+.month-submit-btn:active{background:var(--accent);color:var(--accent-text);border-color:var(--accent);}
+.month-submit-btn.saving{opacity:0.5;cursor:not-allowed;}
 
 /* ── Manager page ── */
 #managerPage{background:var(--bg);}
@@ -315,9 +321,6 @@ input[type=date]{color-scheme:dark;}
       <div class="detail-scroll">
         <div class="months-wrapper" id="monthsWrapper"></div>
       </div>
-      <div class="save-bar">
-        <button class="save-btn" id="inbodySaveBtn" onclick="saveInBodyData()">Save InBody Data</button>
-      </div>
     </div>
 
     <!-- Calendar tab -->
@@ -340,7 +343,7 @@ input[type=date]{color-scheme:dark;}
         </div>
       </div>
       <div class="save-bar">
-        <button class="save-btn" id="calSaveBtn" onclick="saveCalendarData()">Save Calendar</button>
+        <button class="save-btn subdued" id="calSaveBtn" onclick="saveCalendarData()">Save</button>
       </div>
     </div>
   </div>
@@ -631,6 +634,7 @@ function renderMonths(m){
           ${mBox(m.id,key,'bfm','BFM','Body Fat Mass · 體脂肪重','kg',d.bfm)}
           ${mBox(m.id,key,'pbf','PBF','Body Fat % · 體脂肪率','%',d.pbf)}
         </div>
+        <button class="month-submit-btn" id="sub-${key}" onclick="submitMonthData('${m.id}','${key}',this)">Submit</button>
       </div>`;
     w.appendChild(sec);
   });
@@ -706,21 +710,48 @@ function renderCalendarFromPending(m){
     else if(workedOut) cls+=' worked-out';
     else cls+=' past-none';
     if(isToday) cls+=' today';
-    const onclick=isFuture?'':`onclick="toggleWorkout('${m.id}','${dateKey}')"`;
+    const onclick=isFuture?'':`onclick="toggleWorkout('${m.id}','${dateKey}',this)"`;
     html+=`<div class="${cls}" ${onclick}>${day}</div>`;
   }
   html+='</div>';
   container.innerHTML=html;
 }
 
-function toggleWorkout(memberId,dateKey){
-  // Only update local pending state — user must press Save
+function toggleWorkout(memberId,dateKey,el){
+  // Toggle local pending state only — no re-render, just swap classes on the element
   if(!pendingWorkouts[memberId]) pendingWorkouts[memberId]={};
-  if(pendingWorkouts[memberId][dateKey]) delete pendingWorkouts[memberId][dateKey];
-  else pendingWorkouts[memberId][dateKey]=1;
-  // Re-render calendar with pending state
-  const m=members.find(x=>x.id===memberId);if(!m)return;
-  renderCalendarFromPending(m);
+  const isOn=!!pendingWorkouts[memberId][dateKey];
+  if(isOn){
+    delete pendingWorkouts[memberId][dateKey];
+    el.classList.remove('worked-out');
+    el.classList.add('past-none');
+  }else{
+    pendingWorkouts[memberId][dateKey]=1;
+    el.classList.remove('past-none');
+    el.classList.add('worked-out');
+  }
+  // Update the counter only
+  updateCalCount(memberId);
+}
+
+function updateCalCount(memberId){
+  const workouts=pendingWorkouts[memberId]||{};
+  const {year,month}=MONTHS[calMonthIdx];
+  const today=new Date(); today.setHours(0,0,0,0);
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  let workedCount=0;
+  for(let day=1;day<=daysInMonth;day++){
+    const d=new Date(year,month,day);
+    if(d<=today){
+      const dk=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      if(workouts[dk]) workedCount++;
+    }
+  }
+  const countEl=document.getElementById('calNavCount');
+  if(countEl){
+    countEl.textContent=`${workedCount}/${daysInMonth}`;
+    countEl.className='cal-nav-count'+(workedCount===0?' zero':'');
+  }
 }
 
 // ── Photo handling ──
@@ -810,21 +841,22 @@ function trackInBodyChange(memberId,monthKey,field,value){
   pendingInBody[memberId][monthKey][field]=isNaN(n)?null:n;
 }
 
-// ── Save InBody (manual) ──
-async function saveInBodyData(){
-  if(!currentMemberId)return;
-  const btn=document.getElementById('inbodySaveBtn');
-  btn.disabled=true; btn.textContent='Saving…'; btn.classList.add('saving');
+// ── Submit single month InBody data ──
+async function submitMonthData(memberId,monthKey,btn){
+  btn.disabled=true; btn.textContent='Submitting…'; btn.classList.add('saving');
   try{
-    const{data:row,error:fe}=await sb.from('members').select('data').eq('id',currentMemberId).single();
+    const{data:row,error:fe}=await sb.from('members').select('data').eq('id',memberId).single();
     if(fe)throw fe;
     const blob=row.data||{};
-    blob.monthData=pendingInBody[currentMemberId]||blob.monthData||{};
-    const{error}=await sb.from('members').update({data:blob}).eq('id',currentMemberId);
+    if(!blob.monthData)blob.monthData={};
+    // Merge pending for this month only
+    const monthPending=(pendingInBody[memberId]||{})[monthKey]||{};
+    blob.monthData[monthKey]={...(blob.monthData[monthKey]||{}),...monthPending};
+    const{error}=await sb.from('members').update({data:blob}).eq('id',memberId);
     if(error)throw error;
-    showToast('InBody data saved ✓');
-  }catch(err){showToast('Save failed: '+err.message);}
-  btn.disabled=false; btn.textContent='Save InBody Data'; btn.classList.remove('saving');
+    showToast('Submitted ✓');
+  }catch(err){showToast('Submit failed: '+err.message);}
+  btn.disabled=false; btn.textContent='Submit'; btn.classList.remove('saving');
 }
 
 // ── Save Calendar (manual) ──
@@ -841,7 +873,7 @@ async function saveCalendarData(){
     if(error)throw error;
     showToast('Calendar saved ✓');
   }catch(err){showToast('Save failed: '+err.message);}
-  btn.disabled=false; btn.textContent='Save Calendar'; btn.classList.remove('saving');
+  btn.disabled=false; btn.textContent='Save'; btn.classList.remove('saving');
 }
 
 async function saveMonthField(memberId,monthKey,field,value){
