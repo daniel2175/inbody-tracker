@@ -442,22 +442,27 @@ input[type=date]{color-scheme:dark;}
 
 <!-- Login page -->
 <div id="loginPage">
-  <div class="login-logo">Green Goddesses <span>InBody</span></div>
-  <div class="login-sub">Sign in to your account</div>
-  <div class="login-form">
-    <div class="login-field">
-      <label class="login-label">Account</label>
-      <select class="login-select" id="loginSelect">
-        <option value="">Select your name…</option>
-      </select>
+  <div class="login-header">
+    <div class="login-title">Green Goddesses <span>InBody</span></div>
+    <div class="login-subtitle">Sign in to continue</div>
+  </div>
+  <div class="login-body">
+    <div class="login-form">
+      <div class="login-field">
+        <label class="login-label">Account</label>
+        <select class="login-select" id="loginSelect">
+          <option value="">Select your name…</option>
+        </select>
+      </div>
+      <div class="login-field">
+        <label class="login-label">Password</label>
+        <input class="login-input" id="loginPassword" type="password"
+          placeholder="Password" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')attemptLogin()">
+      </div>
+      <div class="login-error" id="loginError"></div>
+      <button class="login-btn" onclick="attemptLogin()">Sign In</button>
     </div>
-    <div class="login-field">
-      <label class="login-label">Password</label>
-      <input class="login-input" id="loginPassword" type="password" placeholder="••••••••"
-        autocomplete="current-password" onkeydown="if(event.key==='Enter')attemptLogin()">
-    </div>
-    <div class="login-error" id="loginError"></div>
-    <button class="login-btn" onclick="attemptLogin()">SIGN IN</button>
   </div>
 </div>
 
@@ -914,21 +919,17 @@ function attemptLogin(){
   const memberId=sel.value;
   const password=document.getElementById('loginPassword').value;
   const errEl=document.getElementById('loginError');
-  errEl.textContent=''; errEl.classList.remove('show');
-  if(!memberId){setLoginError('Please select your name.');return;}
+  function showErr(msg){errEl.textContent=msg;errEl.classList.add('show');}
+  errEl.classList.remove('show');
+  if(!memberId){showErr('Please select your name.');return;}
   const m=members.find(x=>String(x.id)===String(memberId));
-  if(!m){setLoginError('Account not found. Please try again.');return;}
+  if(!m){showErr('Account not found. Please try again.');return;}
   const correctPw=String(m.password||'1234');
-  if(password!==correctPw){setLoginError('Incorrect password.');return;}
+  if(String(password)!==correctPw){showErr('Incorrect password.');return;}
   loggedInMemberId=m.id;
   document.getElementById('loginPage').classList.remove('show');
   document.getElementById('app').classList.add('visible');
   renderMemberList();
-}
-
-function setLoginError(msg){
-  const el=document.getElementById('loginError');
-  el.textContent=msg; el.classList.add('show');
 }
 
 function logout(){
@@ -1099,19 +1100,20 @@ function renderMonths(m){
       </div>
       <div class="month-body">
         ${d.photoUrl
-          ?`<div class="photo-slot-wrap" id="ps-${key}">
-              <img src="${d.photoUrl}" alt="InBody report" onclick="photoClick('${m.id}','${key}')" style="cursor:zoom-in;width:100%;height:auto;display:block;border-radius:var(--radius-sm);">
-              ${own?`<div class="photo-delete-btn" onclick="deletePhoto('${m.id}','${key}')" title="Delete photo">✕</div>`:''}
-            </div>`
-          :own
-            ?`<div class="photo-slot" id="ps-${key}" onclick="photoClick('${m.id}','${key}')">
-                <div class="photo-add-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-                <div class="photo-add-label">Upload InBody report photo</div>
-              </div>`
-            :`<div class="photo-slot" style="cursor:default;opacity:0.4;">
-                <div class="photo-add-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-                <div class="photo-add-label">No report uploaded</div>
-              </div>`}
+          ? `<div class="photo-slot-wrap" id="ps-${key}">
+               <img src="${d.photoUrl}" alt="InBody report"
+                 onclick="photoClick('${m.id}','${key}')" style="width:100%;height:auto;display:block;border-radius:var(--radius-sm);cursor:zoom-in">
+               ${own ? `<div class="photo-delete-btn" onclick="deletePhoto('${m.id}','${key}')" title="Delete photo">✕</div>` : ''}
+             </div>`
+          : own
+            ? `<div class="photo-slot" id="ps-${key}" onclick="photoClick('${m.id}','${key}')">
+                 <div class="photo-add-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+                 <div class="photo-add-label">Upload InBody report photo</div>
+               </div>`
+            : `<div class="photo-slot" style="cursor:default;opacity:0.4;">
+                 <div class="photo-add-label">No report uploaded</div>
+               </div>`
+        }
         ${overallScoreBox(m.id, key, d.overall)}
         <div class="metrics-grid">
           ${mBox(m.id,key,'wt','WT','Weight · 體重','kg',d.wt)}
@@ -1537,6 +1539,7 @@ function trackOverallScore(memberId,monthKey,input){
 
 // ── Submit single month InBody data ──
 async function submitMonthData(memberId,monthKey,btn){
+  if(!isOwnPage(memberId)){showToast('You can only edit your own page.');return;}
   btn.disabled=true; btn.textContent='Submitting…'; btn.classList.add('saving');
   try{
     const{data:row,error:fe}=await sb.from('members').select('data').eq('id',memberId).single();
