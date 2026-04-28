@@ -1408,22 +1408,35 @@ function updateCalCount(memberId){
 }
 
 // ── Photo handling ──
+function triggerUploadReport(memberId,monthKey){
+  if(!isOwnPage(memberId)){showToast('You can only edit your own page.');return;}
+  photoCtx={memberId,monthKey};
+  document.getElementById('fileInput').value='';
+  document.getElementById('fileInput').click();
+}
+
+async function deletePhoto(memberId,monthKey){
+  if(!isOwnPage(memberId)){showToast('You can only edit your own page.');return;}
+  if(!confirm('Delete this report photo?'))return;
+  try{
+    const{data:row,error:fe}=await sb.from('members').select('data').eq('id',memberId).single();
+    if(fe)throw fe;
+    const blob=row.data||{};
+    if(!blob.monthData)blob.monthData={};
+    if(!blob.monthData[monthKey])blob.monthData[monthKey]={};
+    blob.monthData[monthKey].photoUrl=null;
+    // Also clear from pending
+    if(pendingInBody[memberId]&&pendingInBody[memberId][monthKey])
+      pendingInBody[memberId][monthKey].photoUrl=null;
+    const{error}=await sb.from('members').update({data:blob}).eq('id',memberId);
+    if(error)throw error;
+    localRefresh(memberId,blob);
+    showToast('Photo deleted');
+  }catch(err){showToast('Error: '+err.message);}
+}
+
 function photoClick(memberId,monthKey){
-  const m=members.find(x=>x.id===memberId);
-  const d=m&&m.monthData&&m.monthData[monthKey];
-  if(d&&d.photoUrl){
-    viewerCtx={memberId,monthKey};
-    const vImg=document.getElementById('viewerImg');
-    vImg.src=d.photoUrl;
-    _vResetZoom();
-    document.getElementById('photoViewer').classList.add('open');
-    // Setup touch/mouse handlers once
-    setTimeout(_vSetupViewer, 50);
-  }else{
-    photoCtx={memberId,monthKey};
-    document.getElementById('fileInput').value='';
-    document.getElementById('fileInput').click();
-  }
+  // Photo preview tap does nothing — use buttons to upload/delete
 }
 function triggerChangePhoto(){
   closePhotoViewer();
