@@ -711,6 +711,20 @@ function subscribeRT(){
     .subscribe();
 }
 
+// Immediately apply a saved blob to local state + re-render, no network wait
+function localRefresh(memberId, newBlob){
+  const idx=members.findIndex(x=>x.id===memberId);
+  if(idx<0)return;
+  // Merge new blob fields into local member
+  Object.assign(members[idx], newBlob);
+  renderMemberList();
+  if(currentMemberId===memberId){
+    const m=members[idx];
+    if(currentTab==='inbody') renderMonths(m);
+    else renderCalendarFromPending(m);
+  }
+}
+
 // ── Get latest overall score for a member ──
 function getLatestOverall(m){
   const md=m.monthData||{};
@@ -1184,6 +1198,7 @@ async function handleAvatarSelected(e){
     const blobData=row?(row.data||{}):{};
     blobData[fieldName]=urlData.publicUrl;
     await sb.from('members').update({data:blobData}).eq('id',memberId);
+    localRefresh(memberId, blobData);
     showToast(label);
     renderManagerPage();
   }catch(err){showToast('Failed: '+err.message);}
@@ -1245,6 +1260,7 @@ async function submitMonthData(memberId,monthKey,btn){
     blob.monthData[monthKey]={...(blob.monthData[monthKey]||{}),...monthPending};
     const{error}=await sb.from('members').update({data:blob}).eq('id',memberId);
     if(error)throw error;
+    localRefresh(memberId, blob);
     showToast('Submitted ✓');
   }catch(err){showToast('Submit failed: '+err.message);}
   btn.disabled=false; btn.textContent='Submit'; btn.classList.remove('saving');
@@ -1262,6 +1278,7 @@ async function saveCalendarData(){
     blob.workouts=pendingWorkouts[currentMemberId]||{};
     const{error}=await sb.from('members').update({data:blob}).eq('id',currentMemberId);
     if(error)throw error;
+    localRefresh(currentMemberId, blob);
     showToast('Calendar saved ✓');
   }catch(err){showToast('Save failed: '+err.message);}
   btn.disabled=false; btn.textContent='Save'; btn.classList.remove('saving');
@@ -1281,6 +1298,7 @@ async function saveMonthField(memberId,monthKey,field,value){
   pendingInBody[memberId][monthKey][field]=value;
   const{error}=await sb.from('members').update({data:blob}).eq('id',memberId);
   if(error)throw error;
+  localRefresh(memberId, blob);
 }
 
 // ── Manager / PIN ──
@@ -1400,6 +1418,7 @@ async function saveMember(){
       const blob=row?(row.data||{}):{};
       blob.name=name;blob.birthday=birthday;blob.height=height;
       await sb.from('members').update({data:blob}).eq('id',editingMemberId);
+      localRefresh(editingMemberId, blob);
       showToast('Profile updated');
     }else{
       await sb.from('members').insert({data:{name,birthday,height,monthData:{},workouts:{}}});
