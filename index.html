@@ -149,9 +149,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .empty-list h3{font-size:17px;font-weight:500;color:var(--text);}
 
 /* ── FAB ── */
-.fab{position:fixed;bottom:calc(var(--safe-bottom) + 20px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(200,245,90,0.3);cursor:pointer;border:none;z-index:50;}
-.fab:active{transform:scale(0.93);}
-.fab svg{width:22px;height:22px;}
+
 
 /* ── Detail page ── */
 #memberDetailPage{background:var(--bg);}
@@ -318,6 +316,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .month-submit-btn{width:100%;padding:10px;background:var(--bg4);color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;margin-top:4px;}
 .month-submit-btn:active{background:var(--accent);color:var(--accent-text);border-color:var(--accent);}
 .month-submit-btn.saving{opacity:0.5;cursor:not-allowed;}
+/* Read-only mode */
+.readonly-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;margin-bottom:4px;}
+.metric-input:read-only{color:var(--text3);cursor:default;}
+.overall-score-input:read-only{color:var(--text3);cursor:default;}
 /* Overall Score */
 .overall-score-box{background:var(--bg3);border-radius:var(--radius-sm);border:1px solid var(--border);padding:14px;}
 .overall-score-label{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:10px;}
@@ -437,6 +439,26 @@ input[type=date]{color-scheme:dark;}
   </div>
 </div>
 
+<!-- Login page -->
+<div id="loginPage">
+  <div class="login-logo">Green Goddesses <span>InBody</span></div>
+  <div class="login-sub">Sign in to continue</div>
+  <div class="login-form">
+    <div class="login-field">
+      <label class="login-label">Account</label>
+      <select class="login-select" id="loginSelect">
+        <option value="">Select your name…</option>
+      </select>
+    </div>
+    <div class="login-field">
+      <label class="login-label">Password</label>
+      <input class="login-input" id="loginPassword" type="password" placeholder="Enter password" autocomplete="current-password">
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <button class="login-btn" onclick="attemptLogin()">Sign In</button>
+  </div>
+</div>
+
 <!-- Loading (error fallback) -->
 <div id="loadingScreen">
   <div class="loading-logo">Green Goddesses <span>InBody</span></div>
@@ -486,9 +508,7 @@ input[type=date]{color-scheme:dark;}
       <p>Tap + to add the first member</p>
     </div>
     <div class="scroll-area" id="memberListScroll"></div>
-    <button class="fab" onclick="openAddMember()">
-      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-    </button>
+
   </div>
 
   <!-- Member detail -->
@@ -559,9 +579,11 @@ input[type=date]{color-scheme:dark;}
         <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
       </div>
       <div class="detail-topbar-title">Manager</div>
+      <button onclick="logout()" style="padding:6px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;">Log out</button>
     </div>
     <div class="mgr-scroll" id="mgrScroll">
-      <div class="mgr-section-title">Member Profile Photos</div>
+      <div class="mgr-section-title">Members</div>
+      <button class="btn btn-primary" style="width:100%;margin-bottom:14px" onclick="openAddMember()">+ Add Member</button>
       <div id="mgrMemberList"></div>
       <div class="mgr-section-title" style="margin-top:28px;">Achievements</div>
       <!-- Create achievement form -->
@@ -706,6 +728,7 @@ const CAL_START=new Date(2026,3,1); // April 2026
 
 // ── State ──
 let sb=null,members=[],currentMemberId=null,editingMemberId=null;
+let loggedInMemberId=null; // null = not logged in
 let photoCtx=null,viewerCtx=null,realtimeCh=null;
 let achievements=[]; // global list from supabase
 let selectedRarity='common';
@@ -796,7 +819,7 @@ function initSb(cfg){
         await loadAchievements();
         subscribeRT();
         subscribeAchievementsRT();
-        hideSplashNow(null, splashStart);
+        hideSplashNow(()=>showLoginPage(), splashStart);
       });
     });
   }catch(err){
@@ -866,6 +889,52 @@ function subscribeRT(){
     .subscribe();
 }
 
+// ── Login ──
+function showLoginPage(){
+  // Populate dropdown with member names
+  const sel=document.getElementById('loginSelect');
+  sel.innerHTML='<option value="">Select your name…</option>';
+  members.forEach(m=>{
+    const opt=document.createElement('option');
+    opt.value=m.id;
+    opt.textContent=m.name||'(unnamed)';
+    sel.appendChild(opt);
+  });
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginError').textContent='';
+  document.getElementById('loginPage').classList.add('show');
+}
+
+function attemptLogin(){
+  const memberId=document.getElementById('loginSelect').value;
+  const password=document.getElementById('loginPassword').value;
+  const errEl=document.getElementById('loginError');
+  errEl.textContent='';
+  if(!memberId){errEl.textContent='Please select your name.';return;}
+  const m=members.find(x=>x.id===memberId);
+  if(!m){errEl.textContent='Member not found.';return;}
+  const correctPw=m.password||'1234';
+  if(password!==correctPw){errEl.textContent='Incorrect password.';return;}
+  loggedInMemberId=memberId;
+  document.getElementById('loginPage').classList.remove('show');
+  renderMemberList();
+}
+
+function logout(){
+  loggedInMemberId=null;
+  currentMemberId=null;
+  // Go back to member list view
+  document.getElementById('memberDetailPage').classList.remove('active');
+  document.getElementById('managerPage').classList.remove('active');
+  document.getElementById('memberListPage').classList.add('active');
+  showLoginPage();
+}
+
+function isOwnPage(memberId){
+  return loggedInMemberId===memberId;
+}
+
+// ── Local refresh ──
 // Immediately apply a saved blob to local state + re-render, no network wait
 function localRefresh(memberId, newBlob){
   const idx=members.findIndex(x=>x.id===memberId);
@@ -990,12 +1059,16 @@ function switchTab(tab){
     const idx=MONTHS.findIndex(mo=>mo.year===now.getFullYear()&&mo.month===now.getMonth());
     calMonthIdx=idx>=0?idx:0;
     renderCalendar(m);
+    // Show/hide calendar save button based on ownership
+    const calSave=document.getElementById('calSaveBtn');
+    if(calSave) calSave.style.display=isOwnPage(m.id)?'':'none';
   }
 }
 
 // ── InBody months ──
 function renderMonths(m){
   const w=document.getElementById('monthsWrapper');
+  const own=isOwnPage(m.id);
   const open=new Set([...w.querySelectorAll('.month-section.open')].map(e=>e.dataset.key));
   w.innerHTML='';
   const md=m.monthData||{};
@@ -1027,25 +1100,28 @@ function renderMonths(m){
           ${mBox(m.id,key,'bfm','BFM','Body Fat Mass · 體脂肪重','kg',d.bfm)}
           ${mBox(m.id,key,'pbf','PBF','Body Fat % · 體脂肪率','%',d.pbf)}
         </div>
-        <button class="month-submit-btn" id="sub-${key}" onclick="submitMonthData('${m.id}','${key}',this)">Submit</button>
+        ${own?`<button class="month-submit-btn" id="sub-${key}" onclick="submitMonthData('${m.id}','${key}',this)">Submit</button>`:''}
       </div>`;
     w.appendChild(sec);
   });
 }
 
 function mBox(mid,key,field,abbr,name,unit,val){
+  const own=isOwnPage(mid);
   return `<div class="metric-box">
     <div class="metric-abbr">${abbr}</div>
     <div class="metric-full-name">${name}</div>
     <div class="metric-row">
       <input class="metric-input" type="number" step="0.1" inputmode="decimal"
         placeholder="—" value="${val!=null?val:''}"
-        oninput="trackInBodyChange('${mid}','${key}','${field}',this.value)">
+        ${own?`oninput="trackInBodyChange('${mid}','${key}','${field}',this.value)"`:'readonly'}
+        style="${own?'':'color:var(--text3)'}" >
       <span class="metric-unit">${unit}</span>
     </div></div>`;
 }
 
 function overallScoreBox(mid, key, val){
+  const own=isOwnPage(mid);
   const v = val!=null ? val : '';
   const pct = val!=null ? Math.min(100,Math.max(0,val)) : 0;
   const numHtml = val!=null
@@ -1056,7 +1132,8 @@ function overallScoreBox(mid, key, val){
     <div class="overall-score-row">
       <input class="overall-score-input" type="number" min="1" max="100" inputmode="numeric"
         placeholder="—" value="${v}"
-        oninput="trackOverallScore('${mid}','${key}',this)">
+        ${own?`oninput="trackOverallScore('${mid}','${key}',this)"`:'readonly'}
+        style="${own?'':'color:var(--text3)'}">
       <div class="overall-score-display" id="osd-${key}">${numHtml}</div>
       <div class="overall-score-bar-wrap">
         <div class="overall-score-bar" id="osb-${key}" style="width:${pct}%"></div>
@@ -1689,6 +1766,12 @@ function renderManagerPage(){
           <button class="mgr-photo-btn" onclick="pickCardBg('${m.id}')">🖼 Card background<br><span style="font-size:10px;opacity:0.6">750 × 390 px</span></button>
           <button class="mgr-photo-btn" onclick="pickAvatar('${m.id}')">👤 Profile photo<br><span style="font-size:10px;opacity:0.6">400 × 400 px</span></button>
         </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:4px 0 2px;">
+          <input class="form-input" type="text" placeholder="Set password" value="${m.password||''}"
+            id="pw-${m.id}" style="background:var(--bg3);font-size:14px;padding:8px 10px;"
+            autocomplete="off">
+          <button class="mgr-photo-btn" style="flex-shrink:0;white-space:nowrap" onclick="saveMemberPassword('${m.id}')">Save PW</button>
+        </div>
       </div>`;
     list.appendChild(row);
   });
@@ -1696,6 +1779,21 @@ function renderManagerPage(){
   renderAchMgrList();
   renderAchMemberUnlocks();
   renderIconPicker();
+}
+
+async function saveMemberPassword(memberId){
+  const input=document.getElementById('pw-'+memberId);
+  if(!input)return;
+  const pw=input.value.trim();
+  if(!pw){showToast('Password cannot be empty');return;}
+  try{
+    const{data:row}=await sb.from('members').select('data').eq('id',memberId).single();
+    const blob=row?(row.data||{}):{};
+    blob.password=pw;
+    await sb.from('members').update({data:blob}).eq('id',memberId);
+    localRefresh(memberId,blob);
+    showToast('Password updated!');
+  }catch(err){showToast('Error: '+err.message);}
 }
 
 function pickCardBg(memberId){
