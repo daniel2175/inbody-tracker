@@ -274,10 +274,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .ach-unlock-date{font-size:11px;color:var(--text3);margin-top:4px;}
 /* Manager achievement builder */
 .ach-mgr-form{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
-.ach-icon-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-.ach-icon-opt{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;background:var(--bg3);border:2px solid transparent;transition:border-color 0.12s,transform 0.12s;}
-.ach-icon-opt:active{transform:scale(0.9);}
-.ach-icon-opt.selected{border-color:var(--accent);}
+/* Achievement icon upload preview */
+.ach-icon-upload{display:flex;align-items:center;gap:12px;margin-top:6px;}
+.ach-icon-preview{width:56px;height:56px;border-radius:12px;background:var(--bg3);border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;flex-shrink:0;}
+.ach-icon-preview img{width:100%;height:100%;object-fit:contain;}
+.ach-icon-preview-placeholder{font-size:24px;color:var(--text3);}
+.ach-icon-upload-label{font-size:13px;color:var(--text2);line-height:1.5;}
+.ach-icon-upload-label span{color:var(--accent);font-weight:500;}
 .rarity-select{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .rarity-opt{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid transparent;opacity:0.5;transition:opacity 0.15s;}
 .rarity-opt.selected{opacity:1;border-color:currentColor;}
@@ -583,9 +586,19 @@ input[type=date]{color-scheme:dark;}
           </div>
         </div>
         <div style="margin-bottom:14px;">
-          <label class="form-label">Medal Icon</label>
-          <div class="ach-icon-picker" id="achIconPicker"></div>
-        </div>
+          <label class="form-label">Achievement Icon (PNG)</label>
+          <div class="ach-icon-upload">
+            <div class="ach-icon-preview" id="achIconPreview" onclick="document.getElementById('achIconFileInput').click()">
+              <div class="ach-icon-preview-placeholder">＋</div>
+            </div>
+            <div class="ach-icon-upload-label">
+              Tap to upload a PNG icon.<br>
+              <span>Transparent background supported.</span><br>
+              Recommended: 200 × 200 px
+            </div>
+          </div>
+          <input type="file" id="achIconFileInput" accept="image/png,image/*" style="display:none" onchange="handleAchIconSelected(event)">
+        </div>'''
         <button class="btn btn-primary" style="width:100%" onclick="createAchievement()">Add Achievement</button>
       </div>
       <!-- Existing achievements list -->
@@ -683,16 +696,6 @@ const COLORS=[
   {bg:'#7af0c8',fg:'#002a1a'},  // mint
   {bg:'#f0a87a',fg:'#2a1000'},  // peach
 ];
-// ── Achievement icon sets (15 per rarity) ──
-const ACH_ICONS={
-  common:  ['🏅','⭐','🎖','🔰','🌟','💪','👟','🎯','🏋️','🔥','💧','🌱','⚡','🛡','🎗'],
-  uncommon:['🥈','🌿','💚','🍃','🏃','🎽','🧘','🌊','🦋','🍀','🌲','💫','✨','🌈','🐢'],
-  rare:    ['🥇','💎','🔷','🌀','🦅','🐬','🔵','🌙','🗡','🔮','🧊','💙','🌌','🪐','⚔️'],
-  epic:    ['👑','🔮','🌌','🦄','🪄','💜','🌙','🧿','🔱','⚜️','🌠','🦉','🐉','🌑','🎭'],
-  legendary:['🏆','🌟','☀️','🦁','🔱','⚡','🌋','🐺','💛','🌞','🎖','🦊','🧨','🌻','🏵'],
-  mythic:  ['💠','🌸','🌺','🦩','🌙','👁','🎇','🌠','🦋','🍭','💗','🔴','🌊','🌟','✨'],
-};
-
 const MONTHS=[];
 for(let i=0;i<36;i++){
   const d=new Date(2026,3+i,1);
@@ -706,7 +709,6 @@ let sb=null,members=[],currentMemberId=null,editingMemberId=null;
 let photoCtx=null,viewerCtx=null,realtimeCh=null;
 let achievements=[]; // global list from supabase
 let selectedRarity='common';
-let selectedIcon='🏅';
 let realtimeAchCh=null;
 let calMonthIdx=0; // index into MONTHS array
 let avatarTargetMemberId=null;
@@ -1088,7 +1090,7 @@ function renderAchievements(m){
     card.className=`ach-card ${a.rarity||'common'} ${isUnlocked?'unlocked':'locked'}`;
     const dateStr=isUnlocked?`<div class="ach-unlock-date">Achieved ${new Date(unlocked[a.id]).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>`:'';
     card.innerHTML=`
-      <div class="ach-icon ${a.rarity||'common'}">${a.icon||'🏅'}</div>
+      <div class="ach-icon ${a.rarity||'common'}">${a.iconUrl?`<img src="${a.iconUrl}" style="width:100%;height:100%;object-fit:contain;" alt="">`:'🏅'}</div>
       <div class="ach-info">
         <div class="ach-rarity-badge rarity-${a.rarity||'common'}">${a.rarity||'common'}</div>
         <div class="ach-title">${esc(a.title||'')}</div>
@@ -1497,41 +1499,55 @@ function selectRarity(r){
   document.querySelectorAll('.rarity-opt').forEach(el=>{
     el.classList.toggle('selected',el.dataset.rarity===r);
   });
-  renderIconPicker();
 }
 
-function renderIconPicker(){
-  const picker=document.getElementById('achIconPicker');
-  if(!picker)return;
-  const icons=ACH_ICONS[selectedRarity]||ACH_ICONS.common;
-  if(!icons.includes(selectedIcon))selectedIcon=icons[0];
-  picker.innerHTML=icons.map(ic=>`
-    <div class="ach-icon-opt ${ic===selectedIcon?'selected':''}" onclick="selectAchIcon('${ic}')">${ic}</div>
-  `).join('');
-}
+// No icon picker — upload only
+let pendingAchIconDataUrl=null;
 
-function selectAchIcon(ic){
-  selectedIcon=ic;
-  document.querySelectorAll('.ach-icon-opt').forEach(el=>{
-    el.classList.toggle('selected',el.textContent===ic);
-  });
+function handleAchIconSelected(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    pendingAchIconDataUrl=ev.target.result;
+    const preview=document.getElementById('achIconPreview');
+    if(preview) preview.innerHTML=`<img src="${pendingAchIconDataUrl}" alt="icon">`;
+  };
+  reader.readAsDataURL(file);
 }
 
 async function createAchievement(){
   const title=document.getElementById('achTitle').value.trim();
   if(!title){showToast('Please enter a title');return;}
   const narrative=document.getElementById('achNarrative').value.trim();
+  let iconUrl=null;
+  // Upload icon PNG to storage if one was selected
+  if(pendingAchIconDataUrl){
+    try{
+      showToast('Uploading icon…');
+      const res=await fetch(pendingAchIconDataUrl);
+      const blob=await res.blob();
+      const path=`achievement-icons/${Date.now()}.png`;
+      const{error:upErr}=await sb.storage.from('inbody-photos').upload(path,blob,{contentType:'image/png',upsert:true});
+      if(upErr)throw upErr;
+      const{data:urlData}=sb.storage.from('inbody-photos').getPublicUrl(path);
+      iconUrl=urlData.publicUrl;
+    }catch(err){showToast('Icon upload failed: '+err.message);return;}
+  }
   try{
-    const{error}=await sb.from('achievements').insert({data:{title,narrative,rarity:selectedRarity,icon:selectedIcon}});
+    const{error}=await sb.from('achievements').insert({data:{title,narrative,rarity:selectedRarity,iconUrl}});
     if(error){
       if(error.message.includes('relation')||error.message.includes('does not exist')){
-        showToast('Create the "achievements" table in Supabase first — same as members table');
-        return;
+        showToast('Create the "achievements" table in Supabase first');return;
       }
       throw error;
     }
+    // Reset form
     document.getElementById('achTitle').value='';
     document.getElementById('achNarrative').value='';
+    pendingAchIconDataUrl=null;
+    const preview=document.getElementById('achIconPreview');
+    if(preview)preview.innerHTML='<div class="ach-icon-preview-placeholder">＋</div>';
     await loadAchievements();
     renderAchMgrList();
     renderAchMemberUnlocks();
@@ -1556,7 +1572,7 @@ function renderAchMgrList(){
   if(!achievements.length){list.innerHTML='<p style="color:var(--text3);font-size:13px;padding:4px 0 12px">No achievements yet.</p>';return;}
   list.innerHTML=achievements.map(a=>`
     <div class="ach-mgr-row">
-      <div class="ach-mgr-row-icon">${a.icon||'🏅'}</div>
+      <div class="ach-mgr-row-icon">${a.iconUrl?`<img src="${a.iconUrl}" style="width:28px;height:28px;object-fit:contain;" alt="">`:'🏅'}</div>
       <div class="ach-mgr-row-info">
         <div class="ach-mgr-row-title">${esc(a.title||'')}</div>
         <div class="ach-mgr-row-sub rarity-${a.rarity||'common'}">${a.rarity||'common'}${a.narrative?' · '+esc(a.narrative):''}</div>
@@ -1576,7 +1592,7 @@ function renderAchMemberUnlocks(){
     achievements.forEach(a=>{
       const isOn=!!unlocked[a.id];
       html+=`<div class="ach-toggle-row">
-        <div class="ach-toggle-icon">${a.icon||'🏅'}</div>
+        <div class="ach-toggle-icon">${a.iconUrl?`<img src="${a.iconUrl}" style="width:24px;height:24px;object-fit:contain;" alt="">`:'🏅'}</div>
         <div class="ach-toggle-info">
           <div class="ach-toggle-title">${esc(a.title||'')}</div>
           <div class="ach-toggle-sub rarity-${a.rarity||'common'}">${a.rarity||'common'}</div>
