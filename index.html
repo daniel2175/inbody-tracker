@@ -1230,7 +1230,7 @@ function renderMonths(m){
   const md=m.monthData||{};
   MONTHS.forEach(({key,label})=>{
     const d=md[key]||{};
-    const filled=!!(d.photoUrl||d.wt||d.smm||d.bfm||d.pbf);
+    const filled=!!(d.photoUrl||d.wt||d.smm||d.smm_pct||d.bfm||d.bfm_pct||d.pbf);
     const sec=document.createElement('div');
     sec.className='month-section'+(open.has(key)?' open':'');
     sec.dataset.key=key;
@@ -1260,8 +1260,8 @@ function renderMonths(m){
         ${overallScoreBox(m.id, key, d.overall)}
         <div class="metrics-grid">
           ${mBox(m.id,key,'wt','WT','Weight · 體重','kg',d.wt)}
-          ${mBox(m.id,key,'smm','SMM','Skeletal Muscle · 骨骼肌重','kg',d.smm)}
-          ${mBox(m.id,key,'bfm','BFM','Body Fat Mass · 體脂肪重','kg',d.bfm)}
+          ${mBoxDual(m.id,key,'smm','SMM','Skeletal Muscle · 骨骼肌重',d.smm,d.smm_pct)}
+          ${mBoxDual(m.id,key,'bfm','BFM','Body Fat Mass · 體脂肪重',d.bfm,d.bfm_pct)}
           ${mBox(m.id,key,'pbf','PBF','Body Fat % · 體脂肪率','%',d.pbf)}
         </div>
         ${own?`<button class="month-submit-btn" id="sub-${key}" onclick="submitMonthData('${m.id}','${key}',this)">Submit</button>`:''}
@@ -1281,6 +1281,28 @@ function mBox(mid,key,field,abbr,name,unit,val){
         ${own?`oninput="trackInBodyChange('${mid}','${key}','${field}',this.value)"`:'readonly'}
         style="${own?'':'color:var(--text3)'}" >
       <span class="metric-unit">${unit}</span>
+    </div></div>`;
+}
+
+function mBoxDual(mid,key,field,abbr,name,valKg,valPct){
+  const own=isOwnPage(mid);
+  const fieldPct=field+'_pct';
+  return `<div class="metric-box">
+    <div class="metric-abbr">${abbr}</div>
+    <div class="metric-full-name">${name}</div>
+    <div class="metric-row">
+      <input class="metric-input" type="number" step="0.1" inputmode="decimal"
+        placeholder="—" value="${valKg!=null?valKg:''}"
+        ${own?`oninput="trackInBodyChange('${mid}','${key}','${field}',this.value)"`:'readonly'}
+        style="${own?'':'color:var(--text3)'}">
+      <span class="metric-unit">kg</span>
+    </div>
+    <div class="metric-row" style="margin-top:5px">
+      <input class="metric-input" type="number" step="0.1" inputmode="decimal"
+        placeholder="—" value="${valPct!=null?valPct:''}"
+        ${own?`oninput="trackInBodyChange('${mid}','${key}','${fieldPct}',this.value)"`:'readonly'}
+        style="${own?'':'color:var(--text3)'}">
+      <span class="metric-unit">%</span>
     </div></div>`;
 }
 
