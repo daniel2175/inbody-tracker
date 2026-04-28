@@ -286,7 +286,34 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .metric-input:focus{outline:none;border-color:var(--accent);}
 .metric-unit{font-size:12px;color:var(--text3);flex-shrink:0;}
 
-/* ── Calendar tab ── */
+/* ── Daily Check-In popup ── */
+#checkinPopup{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.6);z-index:250;
+  align-items:flex-end;justify-content:center;
+}
+#checkinPopup.open{display:flex;}
+.checkin-sheet{
+  width:100%;max-width:500px;
+  background:var(--bg2);border-radius:22px 22px 0 0;
+  padding:0 16px calc(var(--safe-bottom)+20px);
+  border-top:1px solid var(--border2);
+  animation:slideUp 0.22s ease-out;
+}
+.checkin-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:12px auto 14px;}
+.checkin-date{font-size:14px;font-weight:500;color:var(--text2);text-align:center;margin-bottom:16px;}
+.checkin-btns{display:flex;flex-direction:column;gap:10px;}
+.checkin-btn{
+  width:100%;padding:14px;border:none;border-radius:var(--radius-sm);
+  font-size:15px;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:opacity 0.15s;
+}
+.checkin-btn:active{opacity:0.8;}
+.checkin-btn-green{background:rgba(74,222,128,0.2);color:#4ade80;border:1px solid rgba(74,222,128,0.4);}
+.checkin-btn-red{background:rgba(255,95,95,0.15);color:#ff7070;border:1px solid rgba(255,95,95,0.3);}
+.checkin-btn-grey{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);}
+
+/* ── Daily Check-In tab ── */
 .cal-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .cal-wrapper{padding:16px;padding-bottom:calc(var(--safe-bottom) + 24px);}
 /* Nav header */
@@ -633,7 +660,7 @@ input[type=date]{color-scheme:dark;}
     <!-- Tab bar -->
     <div class="tab-bar">
       <div class="tab-btn active" id="tabInBodyBtn" onclick="switchTab('inbody')">InBody</div>
-      <div class="tab-btn" id="tabCalBtn" onclick="switchTab('calendar')">Calendar</div>
+      <div class="tab-btn" id="tabCalBtn" onclick="switchTab('calendar')">Daily Check-In</div>
       <div class="tab-btn" id="tabAchBtn" onclick="switchTab('achievements')">Achievements</div>
     </div>
 
@@ -663,9 +690,7 @@ input[type=date]{color-scheme:dark;}
           <div id="calContainer"></div>
         </div>
       </div>
-      <div class="save-bar">
-        <button class="save-btn subdued" id="calSaveBtn" onclick="saveCalendarData()">Save</button>
-      </div>
+
     </div>
 
     <!-- Achievements tab -->
@@ -803,6 +828,19 @@ input[type=date]{color-scheme:dark;}
     <button class="viewer-zoom-btn" onclick="viewerZoom(-0.5)">−</button>
     <button class="viewer-btn" onclick="triggerChangePhoto()">Change photo</button>
     <button class="viewer-zoom-btn" onclick="viewerZoom(+0.5)">+</button>
+  </div>
+</div>
+
+<!-- Daily Check-In popup -->
+<div id="checkinPopup">
+  <div class="checkin-sheet">
+    <div class="checkin-handle"></div>
+    <div class="checkin-date" id="checkinDateLabel"></div>
+    <div class="checkin-btns">
+      <button class="checkin-btn checkin-btn-green" onclick="applyCheckin('checkin')">✓ &nbsp;Check-in</button>
+      <button class="checkin-btn checkin-btn-red"   onclick="applyCheckin('uncheck')">✕ &nbsp;Unchecked</button>
+      <button class="checkin-btn checkin-btn-grey"  onclick="closeCheckinPopup()">Close</button>
+    </div>
   </div>
 </div>
 
@@ -1180,9 +1218,6 @@ function switchTab(tab){
     const idx=MONTHS.findIndex(mo=>mo.year===now.getFullYear()&&mo.month===now.getMonth());
     calMonthIdx=idx>=0?idx:0;
     renderCalendar(m);
-    // Show/hide calendar save button based on ownership
-    const calSave=document.getElementById('calSaveBtn');
-    if(calSave) calSave.style.display=isOwnPage(m.id)?'':'none';
   }
 }
 
@@ -1364,28 +1399,56 @@ function renderCalendarFromPending(m){
     else if(workedOut) cls+=' worked-out';
     else cls+=' past-none';
     if(isToday) cls+=' today';
-    const onclick=isFuture?'':`onclick="toggleWorkout('${m.id}','${dateKey}',this)"`;
+    const onclick=isFuture||!isOwnPage(m.id)?'':`onclick="showCheckinPopup('${m.id}','${dateKey}',${day},this)"`;
     html+=`<div class="${cls}" ${onclick}>${day}</div>`;
   }
   html+='</div>';
   container.innerHTML=html;
 }
 
-function toggleWorkout(memberId,dateKey,el){
-  // Toggle local pending state only — no re-render, just swap classes on the element
+// ── Check-in popup ──
+let _checkinCtx=null; // {memberId, dateKey, el}
+
+function showCheckinPopup(memberId,dateKey,day,el){
+  _checkinCtx={memberId,dateKey,el};
+  // Format date label
+  const parts=dateKey.split('-');
+  const d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  document.getElementById('checkinDateLabel').textContent=
+    d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('checkinPopup').classList.add('open');
+}
+
+function closeCheckinPopup(){
+  document.getElementById('checkinPopup').classList.remove('open');
+  _checkinCtx=null;
+}
+
+async function applyCheckin(action){
+  if(!_checkinCtx)return;
+  const{memberId,dateKey,el}=_checkinCtx;
+  closeCheckinPopup();
   if(!pendingWorkouts[memberId]) pendingWorkouts[memberId]={};
-  const isOn=!!pendingWorkouts[memberId][dateKey];
-  if(isOn){
-    delete pendingWorkouts[memberId][dateKey];
-    el.classList.remove('worked-out');
-    el.classList.add('past-none');
-  }else{
+  if(action==='checkin'){
     pendingWorkouts[memberId][dateKey]=1;
     el.classList.remove('past-none');
     el.classList.add('worked-out');
+  } else {
+    delete pendingWorkouts[memberId][dateKey];
+    el.classList.remove('worked-out');
+    el.classList.add('past-none');
   }
-  // Update the counter only
   updateCalCount(memberId);
+  // Auto-save immediately
+  try{
+    const{data:row,error:fe}=await sb.from('members').select('data').eq('id',memberId).single();
+    if(fe)throw fe;
+    const blob=row.data||{};
+    blob.workouts=pendingWorkouts[memberId]||{};
+    const{error}=await sb.from('members').update({data:blob}).eq('id',memberId);
+    if(error)throw error;
+    localRefresh(memberId,blob);
+  }catch(err){showToast('Save failed: '+err.message);}
 }
 
 function updateCalCount(memberId){
@@ -1678,23 +1741,6 @@ async function submitMonthData(memberId,monthKey,btn){
   btn.disabled=false; btn.textContent='Submit'; btn.classList.remove('saving');
 }
 
-// ── Save Calendar (manual) ──
-async function saveCalendarData(){
-  if(!currentMemberId)return;
-  const btn=document.getElementById('calSaveBtn');
-  btn.disabled=true; btn.textContent='Saving…'; btn.classList.add('saving');
-  try{
-    const{data:row,error:fe}=await sb.from('members').select('data').eq('id',currentMemberId).single();
-    if(fe)throw fe;
-    const blob=row.data||{};
-    blob.workouts=pendingWorkouts[currentMemberId]||{};
-    const{error}=await sb.from('members').update({data:blob}).eq('id',currentMemberId);
-    if(error)throw error;
-    localRefresh(currentMemberId, blob);
-    showToast('Calendar saved ✓');
-  }catch(err){showToast('Save failed: '+err.message);}
-  btn.disabled=false; btn.textContent='Save'; btn.classList.remove('saving');
-}
 
 async function saveMonthField(memberId,monthKey,field,value){
   // Used only for photo URLs (auto-save on upload)
@@ -2038,6 +2084,10 @@ function showToast(msg){
   t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
 }
+
+document.getElementById('checkinPopup').addEventListener('click',e=>{
+  if(e.target===document.getElementById('checkinPopup')) closeCheckinPopup();
+});
 
 init();
 </script>
