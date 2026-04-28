@@ -234,6 +234,75 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .cal-day.worked-out:active{background:rgba(74,222,128,0.28);}
 .cal-day.today{outline:2px solid var(--accent);outline-offset:-2px;}
 
+/* ── Achievements tab ── */
+.ach-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.ach-wrapper{padding:16px;padding-bottom:calc(var(--safe-bottom)+24px);display:flex;flex-direction:column;gap:10px;}
+.ach-empty{text-align:center;padding:48px 24px;color:var(--text3);font-size:14px;}
+.ach-card{border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;border:1px solid transparent;}
+.ach-card.locked{background:var(--bg2);border-color:var(--border);filter:grayscale(1);opacity:0.5;}
+.ach-card.unlocked{border-color:transparent;}
+/* Rarity colours */
+.ach-card.common.unlocked{background:linear-gradient(135deg,#1e1e21,#2a2a2e);border-color:rgba(160,160,180,0.3);}
+.ach-card.uncommon.unlocked{background:linear-gradient(135deg,#0d2010,#142d18);border-color:rgba(74,222,128,0.4);}
+.ach-card.rare.unlocked{background:linear-gradient(135deg,#0d1a30,#102240);border-color:rgba(96,165,250,0.4);}
+.ach-card.epic.unlocked{background:linear-gradient(135deg,#1a0d30,#221040);border-color:rgba(167,139,250,0.45);}
+.ach-card.legendary.unlocked{background:linear-gradient(135deg,#2a1800,#3a2200);border-color:rgba(251,191,36,0.5);}
+.ach-card.mythic.unlocked{background:linear-gradient(135deg,#2a001a,#1a0028);border-color:rgba(240,100,200,0.5);}
+/* Rarity glow */
+.ach-card.uncommon.unlocked::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(74,222,128,0.08),transparent 70%);pointer-events:none;}
+.ach-card.rare.unlocked::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(96,165,250,0.1),transparent 70%);pointer-events:none;}
+.ach-card.epic.unlocked::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(167,139,250,0.12),transparent 70%);pointer-events:none;}
+.ach-card.legendary.unlocked::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(251,191,36,0.12),transparent 70%);pointer-events:none;}
+.ach-card.mythic.unlocked::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(240,100,200,0.14),transparent 70%);pointer-events:none;}
+.ach-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;position:relative;z-index:1;}
+.ach-icon.common{background:rgba(160,160,180,0.15);}
+.ach-icon.uncommon{background:rgba(74,222,128,0.15);}
+.ach-icon.rare{background:rgba(96,165,250,0.15);}
+.ach-icon.epic{background:rgba(167,139,250,0.15);}
+.ach-icon.legendary{background:rgba(251,191,36,0.18);}
+.ach-icon.mythic{background:rgba(240,100,200,0.18);}
+.ach-info{flex:1;min-width:0;position:relative;z-index:1;}
+.ach-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.ach-narrative{font-size:12px;color:var(--text2);line-height:1.4;}
+.ach-rarity-badge{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:4px;}
+.rarity-common{color:#a0a0b4;background:rgba(160,160,180,0.12);}
+.rarity-uncommon{color:#4ade80;background:rgba(74,222,128,0.12);}
+.rarity-rare{color:#60a5fa;background:rgba(96,165,250,0.12);}
+.rarity-epic{color:#a78bfa;background:rgba(167,139,250,0.12);}
+.rarity-legendary{color:#fbbf24;background:rgba(251,191,36,0.14);}
+.rarity-mythic{color:#f064c8;background:rgba(240,100,200,0.14);}
+.ach-unlock-date{font-size:11px;color:var(--text3);margin-top:4px;}
+/* Manager achievement builder */
+.ach-mgr-form{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
+.ach-icon-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.ach-icon-opt{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;background:var(--bg3);border:2px solid transparent;transition:border-color 0.12s,transform 0.12s;}
+.ach-icon-opt:active{transform:scale(0.9);}
+.ach-icon-opt.selected{border-color:var(--accent);}
+.rarity-select{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.rarity-opt{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid transparent;opacity:0.5;transition:opacity 0.15s;}
+.rarity-opt.selected{opacity:1;border-color:currentColor;}
+.ach-list-mgr{display:flex;flex-direction:column;gap:8px;}
+.ach-mgr-row{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:center;gap:10px;}
+.ach-mgr-row-icon{font-size:22px;flex-shrink:0;}
+.ach-mgr-row-info{flex:1;min-width:0;}
+.ach-mgr-row-title{font-size:14px;font-weight:500;}
+.ach-mgr-row-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.ach-delete-btn{padding:5px 10px;background:rgba(255,95,95,0.12);border:1px solid rgba(255,95,95,0.25);border-radius:var(--radius-sm);color:var(--red);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+/* Member unlock toggle in manager */
+.ach-member-section{margin-bottom:20px;}
+.ach-member-section-title{font-size:12px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.ach-toggle-row{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.ach-toggle-icon{font-size:20px;flex-shrink:0;}
+.ach-toggle-info{flex:1;min-width:0;}
+.ach-toggle-title{font-size:13px;font-weight:500;}
+.ach-toggle-sub{font-size:11px;color:var(--text3);}
+.ach-toggle-btn{width:44px;height:26px;border-radius:13px;border:none;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+.ach-toggle-btn.off{background:var(--bg4);}
+.ach-toggle-btn.on{background:var(--accent);}
+.ach-toggle-btn::after{content:'';position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left 0.2s;}
+.ach-toggle-btn.off::after{left:3px;}
+.ach-toggle-btn.on::after{left:21px;}
+
 /* ── Save bar ── */
 .save-bar{padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;}
 .save-btn{width:100%;padding:13px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
@@ -438,6 +507,7 @@ input[type=date]{color-scheme:dark;}
     <div class="tab-bar">
       <div class="tab-btn active" id="tabInBodyBtn" onclick="switchTab('inbody')">InBody</div>
       <div class="tab-btn" id="tabCalBtn" onclick="switchTab('calendar')">Calendar</div>
+      <div class="tab-btn" id="tabAchBtn" onclick="switchTab('achievements')">Achievements</div>
     </div>
 
     <!-- InBody tab -->
@@ -470,6 +540,13 @@ input[type=date]{color-scheme:dark;}
         <button class="save-btn subdued" id="calSaveBtn" onclick="saveCalendarData()">Save</button>
       </div>
     </div>
+
+    <!-- Achievements tab -->
+    <div class="tab-content" id="tabAch">
+      <div class="ach-scroll">
+        <div class="ach-wrapper" id="achWrapper"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Manager page -->
@@ -483,6 +560,39 @@ input[type=date]{color-scheme:dark;}
     <div class="mgr-scroll" id="mgrScroll">
       <div class="mgr-section-title">Member Profile Photos</div>
       <div id="mgrMemberList"></div>
+      <div class="mgr-section-title" style="margin-top:28px;">Achievements</div>
+      <!-- Create achievement form -->
+      <div class="ach-mgr-form">
+        <div class="form-field" style="padding:0;margin-bottom:12px;">
+          <label class="form-label">Title</label>
+          <input class="form-input" id="achTitle" type="text" placeholder="Achievement name" style="background:var(--bg3);">
+        </div>
+        <div class="form-field" style="padding:0;margin-bottom:12px;">
+          <label class="form-label">Narrative</label>
+          <input class="form-input" id="achNarrative" type="text" placeholder="Short description…" style="background:var(--bg3);">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label class="form-label">Rarity</label>
+          <div class="rarity-select" id="raritySelect">
+            <div class="rarity-opt rarity-common selected" data-rarity="common" onclick="selectRarity('common')">Common</div>
+            <div class="rarity-opt rarity-uncommon" data-rarity="uncommon" onclick="selectRarity('uncommon')">Uncommon</div>
+            <div class="rarity-opt rarity-rare" data-rarity="rare" onclick="selectRarity('rare')">Rare</div>
+            <div class="rarity-opt rarity-epic" data-rarity="epic" onclick="selectRarity('epic')">Epic</div>
+            <div class="rarity-opt rarity-legendary" data-rarity="legendary" onclick="selectRarity('legendary')">Legendary</div>
+            <div class="rarity-opt rarity-mythic" data-rarity="mythic" onclick="selectRarity('mythic')">Mythic</div>
+          </div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label class="form-label">Medal Icon</label>
+          <div class="ach-icon-picker" id="achIconPicker"></div>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="createAchievement()">Add Achievement</button>
+      </div>
+      <!-- Existing achievements list -->
+      <div class="ach-list-mgr" id="achListMgr"></div>
+      <!-- Member unlocks section -->
+      <div id="achMemberUnlocks"></div>
+
       <div class="mgr-section-title" style="margin-top:28px;">Manager PIN</div>
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 16px 4px;">
         <div class="form-field" style="padding:0;margin-bottom:13px;">
@@ -573,6 +683,16 @@ const COLORS=[
   {bg:'#7af0c8',fg:'#002a1a'},  // mint
   {bg:'#f0a87a',fg:'#2a1000'},  // peach
 ];
+// ── Achievement icon sets (15 per rarity) ──
+const ACH_ICONS={
+  common:  ['🏅','⭐','🎖','🔰','🌟','💪','👟','🎯','🏋️','🔥','💧','🌱','⚡','🛡','🎗'],
+  uncommon:['🥈','🌿','💚','🍃','🏃','🎽','🧘','🌊','🦋','🍀','🌲','💫','✨','🌈','🐢'],
+  rare:    ['🥇','💎','🔷','🌀','🦅','🐬','🔵','🌙','🗡','🔮','🧊','💙','🌌','🪐','⚔️'],
+  epic:    ['👑','🔮','🌌','🦄','🪄','💜','🌙','🧿','🔱','⚜️','🌠','🦉','🐉','🌑','🎭'],
+  legendary:['🏆','🌟','☀️','🦁','🔱','⚡','🌋','🐺','💛','🌞','🎖','🦊','🧨','🌻','🏵'],
+  mythic:  ['💠','🌸','🌺','🦩','🌙','👁','🎇','🌠','🦋','🍭','💗','🔴','🌊','🌟','✨'],
+};
+
 const MONTHS=[];
 for(let i=0;i<36;i++){
   const d=new Date(2026,3+i,1);
@@ -584,6 +704,10 @@ const CAL_START=new Date(2026,3,1); // April 2026
 // ── State ──
 let sb=null,members=[],currentMemberId=null,editingMemberId=null;
 let photoCtx=null,viewerCtx=null,realtimeCh=null;
+let achievements=[]; // global list from supabase
+let selectedRarity='common';
+let selectedIcon='🏅';
+let realtimeAchCh=null;
 let calMonthIdx=0; // index into MONTHS array
 let avatarTargetMemberId=null;
 let currentTab='inbody';
@@ -666,8 +790,10 @@ function initSb(cfg){
       }
       // Load members first, then hide splash
       if(splashStatus)splashStatus.textContent='Loading data…';
-      loadMembers().then(()=>{
+      loadMembers().then(async ()=>{
+        await loadAchievements();
         subscribeRT();
+        subscribeAchievementsRT();
         hideSplashNow(null, splashStart);
       });
     });
@@ -702,6 +828,33 @@ async function loadMembers(){
   renderMemberList();
   if(currentMemberId){const m=members.find(x=>x.id===currentMemberId);if(m)renderMemberDetail(m);}
   return true;
+}
+
+async function loadAchievements(){
+  try{
+    const{data,error}=await sb.from('achievements').select('*').order('created_at');
+    if(error){
+      // Table may not exist yet — silently ignore
+      if(error.message.includes('relation')||error.message.includes('does not exist'))return;
+      console.warn('Achievements load error:',error.message);return;
+    }
+    achievements=(data||[]).map(r=>({id:r.id,...(r.data||{})}));
+  }catch(e){console.warn('loadAchievements:',e);}
+}
+
+function subscribeAchievementsRT(){
+  if(realtimeAchCh)realtimeAchCh.unsubscribe();
+  realtimeAchCh=sb.channel('ach-rt')
+    .on('postgres_changes',{event:'*',schema:'public',table:'achievements'},async()=>{
+      await loadAchievements();
+      if(currentMemberId&&currentTab==='achievements'){
+        const m=members.find(x=>x.id===currentMemberId);
+        if(m)renderAchievements(m);
+      }
+      renderAchMgrList();
+      renderAchMemberUnlocks();
+    })
+    .subscribe();
 }
 
 function subscribeRT(){
@@ -823,12 +976,14 @@ function switchTab(tab){
   currentTab=tab;
   document.getElementById('tabInBodyBtn').classList.toggle('active',tab==='inbody');
   document.getElementById('tabCalBtn').classList.toggle('active',tab==='calendar');
+  document.getElementById('tabAchBtn').classList.toggle('active',tab==='achievements');
   document.getElementById('tabInBody').classList.toggle('active',tab==='inbody');
   document.getElementById('tabCalendar').classList.toggle('active',tab==='calendar');
+  document.getElementById('tabAch').classList.toggle('active',tab==='achievements');
   const m=members.find(x=>x.id===currentMemberId);if(!m)return;
   if(tab==='inbody') renderMonths(m);
+  else if(tab==='achievements') renderAchievements(m);
   else {
-    // Jump to current month on first open
     const now=new Date();
     const idx=MONTHS.findIndex(mo=>mo.year===now.getFullYear()&&mo.month===now.getMonth());
     calMonthIdx=idx>=0?idx:0;
@@ -909,6 +1064,41 @@ function overallScoreBox(mid, key, val){
 }
 
 // ── Calendar tab ──
+// ── Render achievements for a member ──
+function renderAchievements(m){
+  const wrapper=document.getElementById('achWrapper');
+  if(!wrapper)return;
+  if(!achievements.length){
+    wrapper.innerHTML='<div class="ach-empty">No achievements yet.<br>The manager can add them in the manager page.</div>';
+    return;
+  }
+  const unlocked=m.unlockedAchievements||{};
+  // Sort: unlocked first (by date desc), then locked by rarity
+  const rarityOrder={mythic:0,legendary:1,epic:2,rare:3,uncommon:4,common:5};
+  const sorted=[...achievements].sort((a,b)=>{
+    const au=!!unlocked[a.id], bu=!!unlocked[b.id];
+    if(au&&!bu)return -1;
+    if(!au&&bu)return 1;
+    return (rarityOrder[a.rarity]||5)-(rarityOrder[b.rarity]||5);
+  });
+  wrapper.innerHTML='';
+  sorted.forEach(a=>{
+    const isUnlocked=!!unlocked[a.id];
+    const card=document.createElement('div');
+    card.className=`ach-card ${a.rarity||'common'} ${isUnlocked?'unlocked':'locked'}`;
+    const dateStr=isUnlocked?`<div class="ach-unlock-date">Achieved ${new Date(unlocked[a.id]).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>`:'';
+    card.innerHTML=`
+      <div class="ach-icon ${a.rarity||'common'}">${a.icon||'🏅'}</div>
+      <div class="ach-info">
+        <div class="ach-rarity-badge rarity-${a.rarity||'common'}">${a.rarity||'common'}</div>
+        <div class="ach-title">${esc(a.title||'')}</div>
+        <div class="ach-narrative">${esc(a.narrative||'')}</div>
+        ${dateStr}
+      </div>`;
+    wrapper.appendChild(card);
+  });
+}
+
 function calPrev(){
   if(calMonthIdx>0){calMonthIdx--;const m=members.find(x=>x.id===currentMemberId);if(m)renderCalendar(m);}
 }
@@ -1301,6 +1491,130 @@ async function saveMonthField(memberId,monthKey,field,value){
   localRefresh(memberId, blob);
 }
 
+// ── Achievements manager ──
+function selectRarity(r){
+  selectedRarity=r;
+  document.querySelectorAll('.rarity-opt').forEach(el=>{
+    el.classList.toggle('selected',el.dataset.rarity===r);
+  });
+  renderIconPicker();
+}
+
+function renderIconPicker(){
+  const picker=document.getElementById('achIconPicker');
+  if(!picker)return;
+  const icons=ACH_ICONS[selectedRarity]||ACH_ICONS.common;
+  if(!icons.includes(selectedIcon))selectedIcon=icons[0];
+  picker.innerHTML=icons.map(ic=>`
+    <div class="ach-icon-opt ${ic===selectedIcon?'selected':''}" onclick="selectAchIcon('${ic}')">${ic}</div>
+  `).join('');
+}
+
+function selectAchIcon(ic){
+  selectedIcon=ic;
+  document.querySelectorAll('.ach-icon-opt').forEach(el=>{
+    el.classList.toggle('selected',el.textContent===ic);
+  });
+}
+
+async function createAchievement(){
+  const title=document.getElementById('achTitle').value.trim();
+  if(!title){showToast('Please enter a title');return;}
+  const narrative=document.getElementById('achNarrative').value.trim();
+  try{
+    const{error}=await sb.from('achievements').insert({data:{title,narrative,rarity:selectedRarity,icon:selectedIcon}});
+    if(error){
+      if(error.message.includes('relation')||error.message.includes('does not exist')){
+        showToast('Create the "achievements" table in Supabase first — same as members table');
+        return;
+      }
+      throw error;
+    }
+    document.getElementById('achTitle').value='';
+    document.getElementById('achNarrative').value='';
+    await loadAchievements();
+    renderAchMgrList();
+    renderAchMemberUnlocks();
+    showToast('Achievement added!');
+  }catch(err){showToast('Error: '+err.message);}
+}
+
+async function deleteAchievement(id){
+  if(!confirm('Delete this achievement? It will be removed from all members.'))return;
+  try{
+    await sb.from('achievements').delete().eq('id',id);
+    await loadAchievements();
+    renderAchMgrList();
+    renderAchMemberUnlocks();
+    showToast('Deleted');
+  }catch(err){showToast('Error: '+err.message);}
+}
+
+function renderAchMgrList(){
+  const list=document.getElementById('achListMgr');
+  if(!list)return;
+  if(!achievements.length){list.innerHTML='<p style="color:var(--text3);font-size:13px;padding:4px 0 12px">No achievements yet.</p>';return;}
+  list.innerHTML=achievements.map(a=>`
+    <div class="ach-mgr-row">
+      <div class="ach-mgr-row-icon">${a.icon||'🏅'}</div>
+      <div class="ach-mgr-row-info">
+        <div class="ach-mgr-row-title">${esc(a.title||'')}</div>
+        <div class="ach-mgr-row-sub rarity-${a.rarity||'common'}">${a.rarity||'common'}${a.narrative?' · '+esc(a.narrative):''}</div>
+      </div>
+      <button class="ach-delete-btn" onclick="deleteAchievement('${a.id}')">Delete</button>
+    </div>`).join('');
+}
+
+function renderAchMemberUnlocks(){
+  const container=document.getElementById('achMemberUnlocks');
+  if(!container||!achievements.length||!members.length){if(container)container.innerHTML='';return;}
+  let html='<div class="mgr-section-title" style="margin-top:24px;">Member Achievements</div>';
+  members.forEach(m=>{
+    const unlocked=m.unlockedAchievements||{};
+    html+=`<div class="ach-member-section">
+      <div class="ach-member-section-title">${esc(m.name||'')}</div>`;
+    achievements.forEach(a=>{
+      const isOn=!!unlocked[a.id];
+      html+=`<div class="ach-toggle-row">
+        <div class="ach-toggle-icon">${a.icon||'🏅'}</div>
+        <div class="ach-toggle-info">
+          <div class="ach-toggle-title">${esc(a.title||'')}</div>
+          <div class="ach-toggle-sub rarity-${a.rarity||'common'}">${a.rarity||'common'}</div>
+        </div>
+        <button class="ach-toggle-btn ${isOn?'on':'off'}" onclick="toggleMemberAchievement('${m.id}','${a.id}',this)"></button>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  container.innerHTML=html;
+}
+
+async function toggleMemberAchievement(memberId,achId,btn){
+  const m=members.find(x=>x.id===memberId);if(!m)return;
+  const{data:row}=await sb.from('members').select('data').eq('id',memberId).single();
+  const blob=row?(row.data||{}):{};
+  if(!blob.unlockedAchievements)blob.unlockedAchievements={};
+  const isOn=!!blob.unlockedAchievements[achId];
+  if(isOn){
+    delete blob.unlockedAchievements[achId];
+    btn.className='ach-toggle-btn off';
+  }else{
+    blob.unlockedAchievements[achId]=new Date().toISOString();
+    btn.className='ach-toggle-btn on';
+  }
+  try{
+    await sb.from('members').update({data:blob}).eq('id',memberId);
+    // Update local state
+    const idx=members.findIndex(x=>x.id===memberId);
+    if(idx>=0) members[idx].unlockedAchievements=blob.unlockedAchievements;
+    // If viewing this member's achievements tab, refresh it
+    if(currentMemberId===memberId&&currentTab==='achievements'){
+      renderAchievements(members[idx]);
+    }
+    showToast(isOn?'Achievement removed':'Achievement unlocked! 🎉');
+  }catch(err){showToast('Error: '+err.message);}
+}
+
 // ── Manager / PIN ──
 function openManagerEntry(){
   document.getElementById('pinInput').value='';
@@ -1363,6 +1677,9 @@ function renderManagerPage(){
     list.appendChild(row);
   });
   if(!members.length) list.innerHTML='<p style="color:var(--text3);font-size:14px;padding:8px 0;">No members yet.</p>';
+  renderAchMgrList();
+  renderAchMemberUnlocks();
+  renderIconPicker();
 }
 
 function pickCardBg(memberId){
