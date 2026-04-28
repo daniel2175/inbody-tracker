@@ -91,6 +91,83 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .cfg-error{font-size:13px;color:var(--red);margin-bottom:12px;display:none;padding:10px 12px;background:rgba(255,95,95,0.1);border-radius:var(--radius-sm);border:1px solid rgba(255,95,95,0.2);}
 .cfg-hint{font-size:12px;color:var(--text3);margin-top:12px;line-height:1.6;text-align:center;}
 
+/* ── Login page ── */
+#loginPage{
+  position:fixed;inset:0;
+  background:linear-gradient(160deg,#0b1a18 0%,#0e0e0f 60%,#101820 100%);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:997;overflow:hidden;
+  padding:24px 24px calc(var(--safe-bottom)+24px);
+}
+#loginPage.show{display:flex;}
+.login-card{
+  width:100%;max-width:360px;
+  display:flex;flex-direction:column;align-items:center;gap:0;
+}
+.login-title{
+  font-family:'Teko',sans-serif;
+  font-size:36px;font-weight:600;letter-spacing:0.12em;
+  color:var(--text);text-transform:uppercase;
+  margin-bottom:32px;text-align:center;
+}
+.login-title span{color:var(--accent);}
+.login-fields{width:100%;display:flex;flex-direction:column;gap:14px;margin-bottom:24px;}
+/* pill input with left icon */
+.login-input-wrap{
+  display:flex;align-items:center;
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:50px;
+  padding:0 18px;
+  transition:border-color 0.15s,background 0.15s;
+}
+.login-input-wrap:focus-within{
+  border-color:var(--accent);
+  background:rgba(255,255,255,0.1);
+}
+.login-input-icon{
+  color:rgba(255,255,255,0.35);
+  display:flex;align-items:center;
+  margin-right:10px;flex-shrink:0;
+}
+.login-input-icon svg{width:18px;height:18px;}
+.login-select,.login-input{
+  flex:1;min-width:0;
+  padding:14px 0;
+  background:transparent;border:none;
+  font-size:15px;color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  -webkit-appearance:none;appearance:none;
+}
+.login-select:focus,.login-input:focus{outline:none;}
+.login-select option{background:#0e1a18;color:var(--text);}
+.login-input::placeholder{color:rgba(255,255,255,0.3);}
+/* password toggle eye */
+.login-eye{
+  color:rgba(255,255,255,0.3);cursor:pointer;
+  display:flex;align-items:center;padding:4px;margin-left:6px;flex-shrink:0;
+}
+.login-eye svg{width:18px;height:18px;}
+.login-error{
+  width:100%;font-size:13px;color:var(--red);
+  padding:10px 16px;
+  background:rgba(255,95,95,0.08);
+  border:1px solid rgba(255,95,95,0.2);
+  border-radius:20px;text-align:center;
+  display:none;margin-bottom:4px;
+}
+.login-error.show{display:block;}
+.login-btn{
+  width:100%;padding:16px;
+  background:var(--text);color:var(--bg);
+  border:none;border-radius:50px;
+  font-size:16px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+  cursor:pointer;font-family:'Teko',sans-serif;
+  transition:opacity 0.15s,transform 0.1s;
+  box-shadow:0 4px 24px rgba(255,255,255,0.1);
+}
+.login-btn:active{opacity:0.85;transform:scale(0.98);}
+
 /* ── App shell ── */
 #app{display:none;flex-direction:column;height:100vh;height:100dvh;}
 #app.visible{display:flex;}
@@ -442,27 +519,39 @@ input[type=date]{color-scheme:dark;}
 
 <!-- Login page -->
 <div id="loginPage">
-  <div class="login-header">
-    <div class="login-title">Green Goddesses <span>InBody</span></div>
-    <div class="login-subtitle">Sign in to continue</div>
-  </div>
-  <div class="login-body">
-    <div class="login-form">
-      <div class="login-field">
-        <label class="login-label">Account</label>
+  <div class="login-card">
+    <div class="login-title">User <span>Login</span></div>
+    <div class="login-fields">
+      <!-- Account dropdown -->
+      <div class="login-input-wrap">
+        <div class="login-input-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
         <select class="login-select" id="loginSelect">
-          <option value="">Select your name…</option>
+          <option value="">Select account…</option>
         </select>
       </div>
-      <div class="login-field">
-        <label class="login-label">Password</label>
+      <!-- Password -->
+      <div class="login-input-wrap" id="loginPwWrap">
+        <div class="login-input-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
         <input class="login-input" id="loginPassword" type="password"
           placeholder="Password" autocomplete="current-password"
           onkeydown="if(event.key==='Enter')attemptLogin()">
+        <div class="login-eye" onclick="togglePwVisibility()" id="loginEye">
+          <svg id="eyeIcon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+        </div>
       </div>
-      <div class="login-error" id="loginError"></div>
-      <button class="login-btn" onclick="attemptLogin()">Sign In</button>
     </div>
+    <div class="login-error" id="loginError"></div>
+    <button class="login-btn" onclick="attemptLogin()">Login</button>
   </div>
 </div>
 
@@ -912,6 +1001,18 @@ function showLoginPage(){
   document.getElementById('loginPassword').value='';
   document.getElementById('loginError').textContent='';
   document.getElementById('loginPage').classList.add('show');
+}
+
+function togglePwVisibility(){
+  const inp=document.getElementById('loginPassword');
+  const icon=document.getElementById('eyeIcon');
+  if(inp.type==='password'){
+    inp.type='text';
+    icon.innerHTML='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  }else{
+    inp.type='password';
+    icon.innerHTML='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
 }
 
 function attemptLogin(){
