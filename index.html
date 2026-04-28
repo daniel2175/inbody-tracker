@@ -394,6 +394,11 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .month-submit-btn{width:100%;padding:10px;background:var(--bg4);color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;margin-top:4px;}
 .month-submit-btn:active{background:var(--accent);color:var(--accent-text);border-color:var(--accent);}
 .month-submit-btn.saving{opacity:0.5;cursor:not-allowed;}
+.report-photo-btns{display:flex;gap:8px;margin-top:4px;}
+.report-upload-btn{flex:1;padding:10px;background:var(--bg4);color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:center;}
+.report-upload-btn:active{background:var(--accent);color:var(--accent-text);border-color:var(--accent);}
+.report-delete-btn{flex:1;padding:10px;background:rgba(255,95,95,0.08);color:var(--red);border:1px solid rgba(255,95,95,0.25);border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:center;}
+.report-delete-btn:active{background:rgba(255,95,95,0.2);}
 /* Read-only mode */
 .readonly-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;margin-bottom:4px;}
 .metric-input:read-only{color:var(--text3);cursor:default;}
@@ -591,8 +596,11 @@ input[type=date]{color-scheme:dark;}
 <div id="app">
   <div class="topbar">
     <div class="topbar-logo">Green Goddesses <span>InBody</span></div>
-    <div class="icon-btn" onclick="openManagerEntry()" title="Manager">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="icon-btn" onclick="openManagerEntry()" title="Manager">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <button onclick="logout()" style="padding:7px 13px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">Log Out</button>
     </div>
   </div>
 
@@ -675,7 +683,6 @@ input[type=date]{color-scheme:dark;}
         <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
       </div>
       <div class="detail-topbar-title">Manager</div>
-      <button onclick="logout()" style="padding:6px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;">Log out</button>
     </div>
     <div class="mgr-scroll" id="mgrScroll">
       <div class="mgr-section-title">Members</div>
@@ -1201,20 +1208,20 @@ function renderMonths(m){
       </div>
       <div class="month-body">
         ${d.photoUrl
-          ? `<div class="photo-slot-wrap" id="ps-${key}">
+          ? `<div id="ps-${key}" style="position:relative">
                <img src="${d.photoUrl}" alt="InBody report"
-                 onclick="photoClick('${m.id}','${key}')" style="width:100%;height:auto;display:block;border-radius:var(--radius-sm);cursor:zoom-in">
-               ${own ? `<div class="photo-delete-btn" onclick="deletePhoto('${m.id}','${key}')" title="Delete photo">✕</div>` : ''}
+                 onclick="photoClick('${m.id}','${key}')"
+                 style="width:100%;height:auto;display:block;border-radius:var(--radius-sm);cursor:zoom-in">
              </div>`
-          : own
-            ? `<div class="photo-slot" id="ps-${key}" onclick="photoClick('${m.id}','${key}')">
-                 <div class="photo-add-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-                 <div class="photo-add-label">Upload InBody report photo</div>
-               </div>`
-            : `<div class="photo-slot" style="cursor:default;opacity:0.4;">
-                 <div class="photo-add-label">No report uploaded</div>
-               </div>`
+          : `<div id="ps-${key}" class="photo-slot" style="cursor:default;">
+               <div class="photo-add-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+               <div class="photo-add-label">${own ? 'No report uploaded yet' : 'No report uploaded'}</div>
+             </div>`
         }
+        ${own ? `<div class="report-photo-btns">
+          <button class="report-upload-btn" onclick="triggerUploadReport('${m.id}','${key}')">⬆ Upload Report</button>
+          ${d.photoUrl ? `<button class="report-delete-btn" onclick="deletePhoto('${m.id}','${key}')">✕ Delete Report</button>` : ''}
+        </div>` : ''}
         ${overallScoreBox(m.id, key, d.overall)}
         <div class="metrics-grid">
           ${mBox(m.id,key,'wt','WT','Weight · 體重','kg',d.wt)}
