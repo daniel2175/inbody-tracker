@@ -1051,7 +1051,8 @@ function logout(){
 }
 
 function isOwnPage(memberId){
-  return loggedInMemberId===memberId;
+  if(!loggedInMemberId) return false;
+  return String(loggedInMemberId).trim()===String(memberId).trim();
 }
 
 // ── Local refresh ──
