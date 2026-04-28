@@ -92,7 +92,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .cfg-hint{font-size:12px;color:var(--text3);margin-top:12px;line-height:1.6;text-align:center;}
 
 /* ── App shell ── */
-#app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+#app{display:none;flex-direction:column;height:100vh;height:100dvh;}
+#app.visible{display:flex;}
 .page{display:none;flex-direction:column;flex:1;overflow:hidden;}
 .page.active{display:flex;}
 
@@ -452,7 +453,7 @@ input[type=date]{color-scheme:dark;}
     </div>
     <div class="login-field">
       <label class="login-label">Password</label>
-      <input class="login-input" id="loginPassword" type="password" placeholder="Enter password" autocomplete="current-password">
+      <input class="login-input" id="loginPassword" type="password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')attemptLogin()">
     </div>
     <div class="login-error" id="loginError"></div>
     <button class="login-btn" onclick="attemptLogin()">Sign In</button>
@@ -850,8 +851,11 @@ async function loadMembers(){
   const{data,error}=await sb.from('members').select('*').order('created_at');
   if(error){showToast('Load error: '+error.message);return;}
   members=(data||[]).map(r=>({id:r.id,createdAt:r.created_at,...(r.data||{})}));
-  renderMemberList();
-  if(currentMemberId){const m=members.find(x=>x.id===currentMemberId);if(m)renderMemberDetail(m);}
+  // Only render UI if user is already logged in
+  if(loggedInMemberId){
+    renderMemberList();
+    if(currentMemberId){const m=members.find(x=>x.id===currentMemberId);if(m)renderMemberDetail(m);}
+  }
   return true;
 }
 
@@ -891,12 +895,11 @@ function subscribeRT(){
 
 // ── Login ──
 function showLoginPage(){
-  // Populate dropdown with member names
   const sel=document.getElementById('loginSelect');
   sel.innerHTML='<option value="">Select your name…</option>';
   members.forEach(m=>{
     const opt=document.createElement('option');
-    opt.value=m.id;
+    opt.value=String(m.id);
     opt.textContent=m.name||'(unnamed)';
     sel.appendChild(opt);
   });
@@ -906,27 +909,31 @@ function showLoginPage(){
 }
 
 function attemptLogin(){
-  const memberId=document.getElementById('loginSelect').value;
+  const sel=document.getElementById('loginSelect');
+  const memberId=sel.value;
   const password=document.getElementById('loginPassword').value;
   const errEl=document.getElementById('loginError');
   errEl.textContent='';
   if(!memberId){errEl.textContent='Please select your name.';return;}
-  const m=members.find(x=>x.id===memberId);
-  if(!m){errEl.textContent='Member not found.';return;}
-  const correctPw=m.password||'1234';
+  // Find member by id
+  const m=members.find(x=>String(x.id)===String(memberId));
+  if(!m){errEl.textContent='Account not found. Please try again.';return;}
+  const correctPw=String(m.password||'1234');
   if(password!==correctPw){errEl.textContent='Incorrect password.';return;}
-  loggedInMemberId=memberId;
+  // Login success
+  loggedInMemberId=m.id;
   document.getElementById('loginPage').classList.remove('show');
+  document.getElementById('app').classList.add('visible');
   renderMemberList();
 }
 
 function logout(){
   loggedInMemberId=null;
   currentMemberId=null;
-  // Go back to member list view
   document.getElementById('memberDetailPage').classList.remove('active');
   document.getElementById('managerPage').classList.remove('active');
   document.getElementById('memberListPage').classList.add('active');
+  document.getElementById('app').classList.remove('visible');
   showLoginPage();
 }
 
