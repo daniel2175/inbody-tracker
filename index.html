@@ -261,6 +261,22 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .month-head-left{display:flex;align-items:center;gap:10px;}
 .month-dot{width:8px;height:8px;border-radius:50%;background:var(--bg4);border:1.5px solid var(--text3);flex-shrink:0;}
 .month-dot.filled{background:var(--accent);border-color:var(--accent);}
+.month-status{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.month-status svg{width:18px;height:18px;}
+.member-card-tag{
+  font-size:11px;font-weight:600;padding:4px 10px;
+  border-radius:20px;background:rgba(0,0,0,0.15);
+  letter-spacing:0.02em;
+}
+.member-card-inbody{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px 3px 6px;margin-top:5px;
+  border-radius:20px;
+  font-size:11px;font-weight:600;letter-spacing:0.02em;
+}
+.member-card-inbody.awaiting{background:rgba(249,115,22,0.28);color:#fed7aa;border:1px solid rgba(249,115,22,0.45);}
+.member-card-inbody.submitted{background:rgba(74,222,128,0.22);color:#bbf7d0;border:1px solid rgba(74,222,128,0.38);}
+.member-card-inbody svg{width:12px;height:12px;flex-shrink:0;}
 .month-name{font-size:15px;font-weight:500;}
 .month-chevron{width:20px;height:20px;color:var(--text3);transition:transform 0.22s;flex-shrink:0;}
 .month-section.open .month-chevron{transform:rotate(180deg);}
@@ -311,7 +327,6 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .checkin-btn:active{opacity:0.8;}
 .checkin-btn-green{background:rgba(74,222,128,0.2);color:#4ade80;border:1px solid rgba(74,222,128,0.4);}
 .checkin-btn-red{background:rgba(255,95,95,0.15);color:#ff7070;border:1px solid rgba(255,95,95,0.3);}
-.checkin-btn-purple{background:rgba(168,85,247,0.2);color:#d8b4fe;border:1px solid rgba(168,85,247,0.45);}
 .checkin-btn-grey{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);}
 
 /* ── Daily Check-In tab ── */
@@ -336,8 +351,6 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
 .cal-day.future{background:var(--bg2);color:var(--bg4);cursor:default;}
 .cal-day.worked-out{background:rgba(74,222,128,0.18);color:var(--green);border:1px solid rgba(74,222,128,0.35);}
 .cal-day.worked-out:active{background:rgba(74,222,128,0.28);}
-.cal-day.inbody-day{background:rgba(168,85,247,0.18);color:#d8b4fe;border:1px solid rgba(168,85,247,0.4);}
-.cal-day.inbody-day:active{background:rgba(168,85,247,0.28);}
 .cal-day.today{outline:2px solid var(--accent);outline-offset:-2px;}
 
 /* ── Achievements tab ── */
@@ -840,10 +853,9 @@ input[type=date]{color-scheme:dark;}
     <div class="checkin-handle"></div>
     <div class="checkin-date" id="checkinDateLabel"></div>
     <div class="checkin-btns">
-      <button class="checkin-btn checkin-btn-green"  onclick="applyCheckin('checkin')">✓ &nbsp;Workout Check-In</button>
-      <button class="checkin-btn checkin-btn-purple" onclick="applyCheckin('inbody')">◆ &nbsp;InBody Check</button>
-      <button class="checkin-btn checkin-btn-red"    onclick="applyCheckin('uncheck')">✕ &nbsp;Uncheck</button>
-      <button class="checkin-btn checkin-btn-grey"   onclick="closeCheckinPopup()">Close</button>
+      <button class="checkin-btn checkin-btn-green" onclick="applyCheckin('checkin')">✓ &nbsp;Check-in</button>
+      <button class="checkin-btn checkin-btn-red"   onclick="applyCheckin('uncheck')">✕ &nbsp;Unchecked</button>
+      <button class="checkin-btn checkin-btn-grey"  onclick="closeCheckinPopup()">Close</button>
     </div>
   </div>
 </div>
@@ -1158,6 +1170,18 @@ function renderMemberList(){
       ?`<span class="member-card-tag" style="background:rgba(200,245,90,0.25);color:#c8f55a;font-weight:700">${latestScore}/100</span>`
       :'';
 
+    const now=new Date();
+    const curKey=now.getFullYear()+'-'+String(now.getMonth()).padStart(2,'0');
+    const curMonthName=now.toLocaleDateString('en-US',{month:'long'});
+    const hasPhoto=!!((m.monthData||{})[curKey]||{}).photoUrl;
+    const inbodyBadge=`<div class="member-card-inbody ${hasPhoto?'submitted':'awaiting'}">
+      ${hasPhoto
+        ?`<svg fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>`
+        :`<svg fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 2L2 20h20L12 2z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.8" fill="#f97316"/></svg>`
+      }
+      ${hasPhoto?'Submitted':'Awaiting'} · ${curMonthName}
+    </div>`;
+
     const bgStyle=hasImg
       ?`background-image:url('${m.cardBgUrl}');background-color:${fallbackColor}`
       :`background-color:${fallbackColor}`;
@@ -1165,7 +1189,10 @@ function renderMemberList(){
     el.innerHTML=`
       <div class="member-card-bg" style="${bgStyle}"></div>
       <div class="member-card-content" style="color:${textColor}">
-        <div class="member-card-name">${esc(m.name||'')}</div>
+        <div>
+          <div class="member-card-name">${esc(m.name||'')}</div>
+          ${inbodyBadge}
+        </div>
         <div class="member-card-meta">${tags}${scoreBadge}</div>
       </div>`;
     el.onclick=()=>openMember(m.id);
@@ -1226,52 +1253,93 @@ function switchTab(tab){
 }
 
 // ── InBody months ──
+function monthStatusIcon(type){
+  if(type==='done')   return `<svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>`;
+  if(type==='warn')   return `<svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 20h20L12 2z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.8" fill="#f97316"/></svg>`;
+  if(type==='miss')   return `<svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/></svg>`;
+  /* future */        return `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--text3)" stroke-width="1.5"/></svg>`;
+}
+
+function makeMonthSection(m, key, label, statusType, own, md, openSet){
+  const d=md[key]||{};
+  const sec=document.createElement('div');
+  sec.className='month-section'+(openSet.has(key)?' open':'');
+  sec.dataset.key=key;
+  sec.innerHTML=`
+    <div class="month-head" onclick="this.closest('.month-section').classList.toggle('open')">
+      <div class="month-head-left">
+        <div class="month-status">${monthStatusIcon(statusType)}</div>
+        <div class="month-name">${label}</div>
+      </div>
+      <svg class="month-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="month-body">
+      ${d.photoUrl
+        ? `<div id="ps-${key}" style="position:relative">
+             <img src="${d.photoUrl}" alt="InBody report"
+               style="width:100%;height:auto;display:block;border-radius:var(--radius-sm);">
+           </div>`
+        : `<div id="ps-${key}" class="photo-slot" style="cursor:default;">
+             <div class="photo-add-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+             <div class="photo-add-label">${own ? 'No report uploaded yet' : 'No report uploaded'}</div>
+           </div>`
+      }
+      ${own ? `<div class="report-photo-btns">
+        <button class="report-upload-btn" onclick="triggerUploadReport('${m.id}','${key}')">⬆ Upload Report</button>
+        ${d.photoUrl ? `<button class="report-delete-btn" onclick="deletePhoto('${m.id}','${key}')">✕ Delete Report</button>` : ''}
+      </div>` : ''}
+      ${overallScoreBox(m.id, key, d.overall)}
+      <div class="metrics-grid">
+        ${mBox(m.id,key,'wt','WT','Weight · 體重','kg',d.wt)}
+        ${mBoxDual(m.id,key,'smm','SMM','Skeletal Muscle · 骨骼肌重',d.smm,d.smm_pct)}
+        ${mBoxDual(m.id,key,'bfm','BFM','Body Fat Mass · 體脂肪重',d.bfm,d.bfm_pct)}
+        ${mBox(m.id,key,'pbf','PBF','Body Fat % · 體脂肪率','%',d.pbf)}
+      </div>
+      ${own?`<button class="month-submit-btn" id="sub-${key}" onclick="submitMonthData('${m.id}','${key}',this)">Submit</button>`:''}
+    </div>`;
+  return sec;
+}
+
 function renderMonths(m){
   const w=document.getElementById('monthsWrapper');
   const own=isOwnPage(m.id);
-  const open=new Set([...w.querySelectorAll('.month-section.open')].map(e=>e.dataset.key));
+  const openSet=new Set([...w.querySelectorAll('.month-section.open')].map(e=>e.dataset.key));
   w.innerHTML='';
   const md=m.monthData||{};
-  MONTHS.forEach(({key,label})=>{
-    const d=md[key]||{};
-    const filled=!!(d.photoUrl||d.wt||d.smm||d.bfm||d.pbf);
-    const sec=document.createElement('div');
-    sec.className='month-section'+(open.has(key)?' open':'');
-    sec.dataset.key=key;
-    sec.innerHTML=`
-      <div class="month-head" onclick="this.closest('.month-section').classList.toggle('open')">
-        <div class="month-head-left">
-          <div class="month-dot ${filled?'filled':''}"></div>
-          <div class="month-name">${label}</div>
-        </div>
-        <svg class="month-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
-      </div>
-      <div class="month-body">
-        ${d.photoUrl
-          ? `<div id="ps-${key}" style="position:relative">
-               <img src="${d.photoUrl}" alt="InBody report"
-                 style="width:100%;height:auto;display:block;border-radius:var(--radius-sm);">
-             </div>`
-          : `<div id="ps-${key}" class="photo-slot" style="cursor:default;">
-               <div class="photo-add-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-               <div class="photo-add-label">${own ? 'No report uploaded yet' : 'No report uploaded'}</div>
-             </div>`
-        }
-        ${own ? `<div class="report-photo-btns">
-          <button class="report-upload-btn" onclick="triggerUploadReport('${m.id}','${key}')">⬆ Upload Report</button>
-          ${d.photoUrl ? `<button class="report-delete-btn" onclick="deletePhoto('${m.id}','${key}')">✕ Delete Report</button>` : ''}
-        </div>` : ''}
-        ${overallScoreBox(m.id, key, d.overall)}
-        <div class="metrics-grid">
-          ${mBox(m.id,key,'wt','WT','Weight · 體重','kg',d.wt)}
-          ${mBox(m.id,key,'smm','SMM','Skeletal Muscle · 骨骼肌重','kg',d.smm)}
-          ${mBox(m.id,key,'bfm','BFM','Body Fat Mass · 體脂肪重','kg',d.bfm)}
-          ${mBox(m.id,key,'pbf','PBF','Body Fat % · 體脂肪率','%',d.pbf)}
-        </div>
-        ${own?`<button class="month-submit-btn" id="sub-${key}" onclick="submitMonthData('${m.id}','${key}',this)">Submit</button>`:''}
-      </div>`;
-    w.appendChild(sec);
-  });
+
+  const now=new Date();
+  const nowYear=now.getFullYear(), nowMonth=now.getMonth();
+  const curIdx=MONTHS.findIndex(mo=>mo.year===nowYear&&mo.month===nowMonth);
+
+  if(curIdx<0){
+    MONTHS.forEach(({key,label})=>w.appendChild(makeMonthSection(m,key,label,'future',own,md,openSet)));
+    return;
+  }
+
+  // Current month
+  const cur=MONTHS[curIdx];
+  const curStatus=(md[cur.key]||{}).photoUrl?'done':'warn';
+  w.appendChild(makeMonthSection(m,cur.key,cur.label,curStatus,own,md,openSet));
+
+  // Next 5 months
+  const upEnd=Math.min(curIdx+6,MONTHS.length);
+  for(let i=curIdx+1;i<upEnd;i++){
+    const mo=MONTHS[i];
+    w.appendChild(makeMonthSection(m,mo.key,mo.label,'future',own,md,openSet));
+  }
+
+  // Past months
+  if(curIdx>0){
+    const ph=document.createElement('div');
+    ph.style.cssText='font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;padding:8px 2px 2px;';
+    ph.textContent='Past Months';
+    w.appendChild(ph);
+    for(let i=curIdx-1;i>=0;i--){
+      const mo=MONTHS[i];
+      const pastStatus=(md[mo.key]||{}).photoUrl?'done':'miss';
+      w.appendChild(makeMonthSection(m,mo.key,mo.label,pastStatus,own,md,openSet));
+    }
+  }
 }
 
 function mBox(mid,key,field,abbr,name,unit,val){
@@ -1285,6 +1353,28 @@ function mBox(mid,key,field,abbr,name,unit,val){
         ${own?`oninput="trackInBodyChange('${mid}','${key}','${field}',this.value)"`:'readonly'}
         style="${own?'':'color:var(--text3)'}" >
       <span class="metric-unit">${unit}</span>
+    </div></div>`;
+}
+
+function mBoxDual(mid,key,field,abbr,name,valKg,valPct){
+  const own=isOwnPage(mid);
+  const fieldPct=field+'_pct';
+  return `<div class="metric-box">
+    <div class="metric-abbr">${abbr}</div>
+    <div class="metric-full-name">${name}</div>
+    <div class="metric-row">
+      <input class="metric-input" type="number" step="0.1" inputmode="decimal"
+        placeholder="—" value="${valKg!=null?valKg:''}"
+        ${own?`oninput="trackInBodyChange('${mid}','${key}','${field}',this.value)"`:'readonly'}
+        style="${own?'':'color:var(--text3)'}">
+      <span class="metric-unit">kg</span>
+    </div>
+    <div class="metric-row" style="margin-top:5px">
+      <input class="metric-input" type="number" step="0.1" inputmode="decimal"
+        placeholder="—" value="${valPct!=null?valPct:''}"
+        ${own?`oninput="trackInBodyChange('${mid}','${key}','${fieldPct}',this.value)"`:'readonly'}
+        style="${own?'':'color:var(--text3)'}">
+      <span class="metric-unit">%</span>
     </div></div>`;
 }
 
@@ -1397,11 +1487,9 @@ function renderCalendarFromPending(m){
     const d=new Date(year,month,day);
     const isFuture=d>today;
     const isToday=d.getTime()===today.getTime();
-    const workedOut=workouts[dateKey]===1;
-    const inbodyDay=workouts[dateKey]===2;
+    const workedOut=!!workouts[dateKey];
     let cls='cal-day';
     if(isFuture) cls+=' future';
-    else if(inbodyDay) cls+=' inbody-day';
     else if(workedOut) cls+=' worked-out';
     else cls+=' past-none';
     if(isToday) cls+=' today';
@@ -1437,15 +1525,11 @@ async function applyCheckin(action){
   if(!pendingWorkouts[memberId]) pendingWorkouts[memberId]={};
   if(action==='checkin'){
     pendingWorkouts[memberId][dateKey]=1;
-    el.classList.remove('past-none','inbody-day');
+    el.classList.remove('past-none');
     el.classList.add('worked-out');
-  } else if(action==='inbody'){
-    pendingWorkouts[memberId][dateKey]=2;
-    el.classList.remove('past-none','worked-out');
-    el.classList.add('inbody-day');
   } else {
     delete pendingWorkouts[memberId][dateKey];
-    el.classList.remove('worked-out','inbody-day');
+    el.classList.remove('worked-out');
     el.classList.add('past-none');
   }
   updateCalCount(memberId);
