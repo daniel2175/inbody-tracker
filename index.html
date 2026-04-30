@@ -223,24 +223,14 @@ body{font-family:'DM Sans',sans-serif;color:var(--text);font-size:15px;line-heig
   letter-spacing:0.02em;
 }
 .member-card-inbody{
-  position:absolute;top:14px;right:14px;
-  display:flex;align-items:center;gap:5px;
-  padding:4px 10px 4px 7px;
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px 3px 6px;margin-top:5px;
   border-radius:20px;
   font-size:11px;font-weight:600;letter-spacing:0.02em;
-  z-index:3;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
 }
-.member-card-inbody.awaiting{
-  background:rgba(249,115,22,0.25);
-  color:#fed7aa;
-  border:1px solid rgba(249,115,22,0.4);
-}
-.member-card-inbody.submitted{
-  background:rgba(74,222,128,0.2);
-  color:#bbf7d0;
-  border:1px solid rgba(74,222,128,0.35);
-}
-.member-card-inbody svg{width:13px;height:13px;flex-shrink:0;}
+.member-card-inbody.awaiting{background:rgba(249,115,22,0.28);color:#fed7aa;border:1px solid rgba(249,115,22,0.45);}
+.member-card-inbody.submitted{background:rgba(74,222,128,0.22);color:#bbf7d0;border:1px solid rgba(74,222,128,0.38);}
+.member-card-inbody svg{width:12px;height:12px;flex-shrink:0;}
 .empty-list{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text2);text-align:center;padding:40px;}
 .empty-list svg{width:48px;height:48px;color:var(--text3);margin-bottom:8px;}
 .empty-list h3{font-size:17px;font-weight:500;color:var(--text);}
@@ -1173,16 +1163,14 @@ function renderMemberList(){
       ?`<span class="member-card-tag" style="background:rgba(200,245,90,0.25);color:#c8f55a;font-weight:700">${latestScore}/100</span>`
       :'';
 
-    // InBody status badge for current month
     const now=new Date();
     const curKey=now.getFullYear()+'-'+String(now.getMonth()).padStart(2,'0');
     const curMonthName=now.toLocaleDateString('en-US',{month:'long'});
-    const curData=(m.monthData||{})[curKey]||{};
-    const hasPhoto=!!curData.photoUrl;
+    const hasPhoto=!!((m.monthData||{})[curKey]||{}).photoUrl;
     const inbodyBadge=`<div class="member-card-inbody ${hasPhoto?'submitted':'awaiting'}">
       ${hasPhoto
-        ? `<svg fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>`
-        : `<svg fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 2L2 20h20L12 2z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.8" fill="#f97316"/></svg>`
+        ?`<svg fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>`
+        :`<svg fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 2L2 20h20L12 2z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.8" fill="#f97316"/></svg>`
       }
       ${hasPhoto?'Submitted':'Awaiting'} · ${curMonthName}
     </div>`;
@@ -1193,9 +1181,11 @@ function renderMemberList(){
 
     el.innerHTML=`
       <div class="member-card-bg" style="${bgStyle}"></div>
-      ${inbodyBadge}
       <div class="member-card-content" style="color:${textColor}">
-        <div class="member-card-name">${esc(m.name||'')}</div>
+        <div>
+          <div class="member-card-name">${esc(m.name||'')}</div>
+          ${inbodyBadge}
+        </div>
         <div class="member-card-meta">${tags}${scoreBadge}</div>
       </div>`;
     el.onclick=()=>openMember(m.id);
