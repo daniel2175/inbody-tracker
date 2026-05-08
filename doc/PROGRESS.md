@@ -167,3 +167,6 @@
         - 管理員 PIN 1234 → manager page 開啟,6 個會員列表 + 18 個 data-action 控制鈕
         - 全程 console 無 error
     - 結論:Phase 1 全綠,可進入 Phase 2(資料正規化 + 趨勢視覺化)。
+- **2026-05-08 (額外優化)**:
+    - 實作登入狀態持久化:使用 `localStorage` 儲存 `logged_in_id`,解決重新整理後需重複登入的問題。
+    - 確保登出時正確清除 `localStorage` 紀錄。

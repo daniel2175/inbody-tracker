@@ -86,7 +86,21 @@ export async function loadMembers() {
     createdAt: r.created_at,
     ...(r.data || {}),
   }));
+
+  // Auto-login restoration
+  const savedId = localStorage.getItem('logged_in_id');
+  if (savedId && !state.loggedInMemberId) {
+    const stillExists = state.members.find(m => String(m.id) === String(savedId));
+    if (stillExists) {
+      state.loggedInMemberId = savedId;
+    } else {
+      localStorage.removeItem('logged_in_id');
+    }
+  }
+
   if (state.loggedInMemberId) {
+    document.getElementById('loginPage').classList.remove('show');
+    document.getElementById('app').classList.add('visible');
     renderMemberList();
     if (state.currentMemberId) {
       const m = state.members.find((x) => x.id === state.currentMemberId);

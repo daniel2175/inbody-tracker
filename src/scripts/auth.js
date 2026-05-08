@@ -54,6 +54,7 @@ export function attemptLogin() {
     return;
   }
   state.loggedInMemberId = m.id;
+  localStorage.setItem('logged_in_id', m.id); // Persistence fix
   document.getElementById('loginPage').classList.remove('show');
   document.getElementById('app').classList.add('visible');
   renderMemberList();
@@ -62,6 +63,7 @@ export function attemptLogin() {
 export function logout() {
   state.loggedInMemberId = null;
   state.currentMemberId = null;
+  localStorage.removeItem('logged_in_id'); // Persistence fix
   document.getElementById('memberDetailPage').classList.remove('active');
   document.getElementById('managerPage').classList.remove('active');
   document.getElementById('memberListPage').classList.add('active');
