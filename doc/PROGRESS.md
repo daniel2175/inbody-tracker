@@ -1,6 +1,7 @@
 # InBody Tracker 優化進度表
 
 > 本文件用於追蹤 [優化計畫](./optimization-plan.md) 的執行狀態。
+> **驗收標準**: 參閱 [驗收標準](./acceptance-criteria.md)
 > **當前狀態**: 🟢 準備啟動 Phase 1
 
 ---
