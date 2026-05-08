@@ -1,0 +1,105 @@
+/* ── Config (initial Supabase setup) ── */
+#configScreen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: calc(var(--safe-top) + 32px) 24px calc(var(--safe-bottom) + 32px);
+  z-index: 998;
+}
+#configScreen.show {
+  display: flex;
+}
+.cfg-logo {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+.cfg-logo span {
+  color: var(--accent);
+}
+.cfg-sub {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+.cfg-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.cfg-step {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.cfg-step strong {
+  color: var(--text);
+  font-weight: 500;
+}
+.cfg-step a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.cfg-step code {
+  font-family: 'DM Mono', monospace;
+  color: var(--accent);
+  font-size: 11px;
+  background: var(--bg3);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.cfg-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.cfg-field-label {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.cfg-input {
+  width: 100%;
+  padding: 11px 13px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+}
+.cfg-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.cfg-error {
+  font-size: 13px;
+  color: var(--red);
+  margin-bottom: 12px;
+  display: none;
+  padding: 10px 12px;
+  background: rgba(255, 95, 95, 0.1);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 95, 95, 0.2);
+}
+.cfg-hint {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 12px;
+  line-height: 1.6;
+  text-align: center;
+}

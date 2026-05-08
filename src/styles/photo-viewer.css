@@ -1,0 +1,102 @@
+/* ── Photo viewer ── */
+#photoViewer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 300;
+  flex-direction: column;
+  overflow: hidden;
+  touch-action: none;
+}
+#photoViewer.open {
+  display: flex;
+}
+#viewerCanvas {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  cursor: grab;
+}
+#viewerCanvas.grabbing {
+  cursor: grabbing;
+}
+#viewerImg {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transform-origin: 0 0;
+  will-change: transform;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  display: block;
+}
+.viewer-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--safe-top) + 12px) 16px 12px;
+  background: rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+  z-index: 2;
+}
+.viewer-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.viewer-close svg {
+  width: 18px;
+  height: 18px;
+}
+.viewer-zoom-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'DM Mono', monospace;
+}
+.viewer-bottombar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px calc(var(--safe-bottom) + 16px);
+  background: rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+}
+.viewer-btn {
+  padding: 10px 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+.viewer-zoom-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}

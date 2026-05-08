@@ -1,0 +1,101 @@
+/* ── Manager page ── */
+#managerPage {
+  background: var(--bg);
+}
+.mgr-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(var(--safe-top) + 14px) 16px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.mgr-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px;
+  padding-bottom: calc(var(--safe-bottom) + 24px);
+}
+.mgr-section-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  margin-top: 20px;
+}
+.mgr-section-title:first-child {
+  margin-top: 0;
+}
+.mgr-member-row {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.mgr-card-preview {
+  height: 80px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 14px;
+}
+.mgr-card-preview-name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 2;
+}
+.mgr-card-controls {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+}
+.mgr-btns-row {
+  display: flex;
+  gap: 8px;
+}
+.mgr-photo-btn {
+  flex: 1;
+  padding: 9px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  text-align: center;
+}
+.mgr-photo-btn:active {
+  background: var(--bg4);
+}
+.mgr-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.mgr-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mgr-name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+}

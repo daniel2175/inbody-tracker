@@ -1,0 +1,191 @@
+/* ── Daily Check-In popup ── */
+#checkinPopup {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 250;
+  align-items: flex-end;
+  justify-content: center;
+}
+#checkinPopup.open {
+  display: flex;
+}
+.checkin-sheet {
+  width: 100%;
+  max-width: 500px;
+  background: var(--bg2);
+  border-radius: 22px 22px 0 0;
+  padding: 0 16px calc(var(--safe-bottom)+20px);
+  border-top: 1px solid var(--border2);
+  animation: slideUp 0.22s ease-out;
+}
+.checkin-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border2);
+  margin: 12px auto 14px;
+}
+.checkin-date {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text2);
+  text-align: center;
+  margin-bottom: 16px;
+}
+.checkin-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.checkin-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+}
+.checkin-btn:active {
+  opacity: 0.8;
+}
+.checkin-btn-green {
+  background: rgba(74, 222, 128, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+}
+.checkin-btn-red {
+  background: rgba(255, 95, 95, 0.15);
+  color: #ff7070;
+  border: 1px solid rgba(255, 95, 95, 0.3);
+}
+.checkin-btn-purple {
+  background: rgba(168, 85, 247, 0.2);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.45);
+}
+.checkin-btn-grey {
+  background: var(--bg3);
+  color: var(--text2);
+  border: 1px solid var(--border2);
+}
+
+/* ── Daily Check-In tab ── */
+.cal-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.cal-wrapper {
+  padding: 16px;
+  padding-bottom: calc(var(--safe-bottom) + 24px);
+}
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.cal-nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text2);
+}
+.cal-nav-btn:active {
+  background: var(--bg4);
+}
+.cal-nav-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.cal-nav-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.cal-nav-month {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.cal-nav-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green);
+}
+.cal-nav-count.zero {
+  color: var(--text3);
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.cal-day-label {
+  font-size: 10px;
+  color: var(--text3);
+  text-align: center;
+  padding-bottom: 6px;
+  font-weight: 500;
+}
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: background 0.15s;
+}
+.cal-day.empty {
+  cursor: default;
+}
+.cal-day.past-none {
+  background: var(--bg3);
+  color: var(--text3);
+}
+.cal-day.past-none:active {
+  background: var(--bg4);
+}
+.cal-day.future {
+  background: var(--bg2);
+  color: var(--bg4);
+  cursor: default;
+}
+.cal-day.worked-out {
+  background: rgba(74, 222, 128, 0.18);
+  color: var(--green);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+}
+.cal-day.worked-out:active {
+  background: rgba(74, 222, 128, 0.28);
+}
+.cal-day.inbody-day {
+  background: rgba(168, 85, 247, 0.18);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+.cal-day.inbody-day:active {
+  background: rgba(168, 85, 247, 0.28);
+}
+.cal-day.today {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}

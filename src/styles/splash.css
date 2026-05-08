@@ -1,0 +1,105 @@
+/* ── Splash screen ── */
+#splashScreen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  z-index: 1000;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+#splashScreen.fade-out {
+  opacity: 0;
+  transform: scale(1.04);
+  pointer-events: none;
+}
+.splash-icon {
+  width: 110px;
+  height: 110px;
+  border-radius: 26px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: splashPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.splash-icon img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.splash-name {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  animation: splashFadeUp 0.45s 0.15s ease both;
+}
+.splash-name span {
+  color: var(--accent);
+}
+.splash-sub {
+  font-size: 13px;
+  color: var(--text3);
+  margin-top: 6px;
+  letter-spacing: 0.02em;
+  animation: splashFadeUp 0.45s 0.25s ease both;
+}
+.splash-loading {
+  position: absolute;
+  bottom: calc(var(--safe-bottom) + 40px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text3);
+  animation: splashFadeUp 0.4s 0.4s ease both;
+}
+@keyframes splashPop {
+  from {
+    opacity: 0;
+    transform: scale(0.75);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes splashFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Old loading screen (kept for error states) */
+#loadingScreen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 999;
+}
+.loading-logo {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.loading-logo span {
+  color: var(--accent);
+}
+.loading-status {
+  font-size: 13px;
+  color: var(--text3);
+}

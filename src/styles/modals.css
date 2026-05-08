@@ -1,0 +1,170 @@
+/* ── PIN modal ── */
+#pinModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 400;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+#pinModal.open {
+  display: flex;
+}
+.pin-sheet {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 320px;
+  border: 1px solid var(--border2);
+}
+.pin-title {
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.pin-sub {
+  font-size: 13px;
+  color: var(--text2);
+  text-align: center;
+  margin-bottom: 20px;
+}
+.pin-input {
+  width: 100%;
+  padding: 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  letter-spacing: 0.2em;
+  font-family: 'DM Mono', monospace;
+  -webkit-appearance: none;
+}
+.pin-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.pin-error {
+  font-size: 13px;
+  color: var(--red);
+  text-align: center;
+  margin-top: 8px;
+  min-height: 18px;
+}
+.pin-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* ── Generic modals ── */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-backdrop.open {
+  display: flex;
+}
+.modal-sheet {
+  width: 100%;
+  max-width: 500px;
+  background: var(--bg2);
+  border-radius: 22px 22px 0 0;
+  padding-bottom: calc(var(--safe-bottom) + 16px);
+  border-top: 1px solid var(--border2);
+  animation: slideUp 0.22s ease-out;
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border2);
+  margin: 12px auto 18px;
+}
+.modal-title {
+  font-size: 17px;
+  font-weight: 600;
+  padding: 0 20px 18px;
+}
+.form-field {
+  padding: 0 20px;
+  margin-bottom: 13px;
+}
+.form-label {
+  font-size: 11px;
+  color: var(--text2);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+  display: block;
+}
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.modal-btns {
+  display: flex;
+  gap: 10px;
+  padding: 4px 20px;
+}
+.btn {
+  flex: 1;
+  padding: 13px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn:active {
+  opacity: 0.8;
+}
+.btn-ghost {
+  background: var(--bg3);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.btn-danger {
+  background: var(--red);
+  color: #fff;
+}
+.delete-row {
+  padding: 8px 20px 0;
+}

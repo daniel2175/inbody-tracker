@@ -1,0 +1,61 @@
+/* ── App shell ── */
+#app {
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+#app.visible {
+  display: flex;
+}
+.page {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+.page.active {
+  display: flex;
+}
+
+/* ── Topbar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--safe-top) + 10px) 20px 10px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 10;
+}
+.topbar-logo {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  font-family: 'Teko', sans-serif;
+  line-height: 1;
+}
+.topbar-logo span {
+  color: var(--accent);
+}
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text2);
+  flex-shrink: 0;
+}
+.icon-btn:active {
+  background: var(--bg4);
+}
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
