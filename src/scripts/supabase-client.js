@@ -63,7 +63,9 @@ export function initSb(cfg) {
           await loadAchievements();
           subscribeRT();
           subscribeAchievementsRT();
-          hideSplashNow(() => showLoginPage(), splashStart);
+          hideSplashNow(() => {
+            if (!state.loggedInMemberId) showLoginPage();
+          }, splashStart);
         });
       });
   } catch (err) {
