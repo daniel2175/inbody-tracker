@@ -3,7 +3,7 @@
 // data-action attributes resolved through delegation.
 
 import { connectSupabase } from './supabase-client.js';
-import { attemptLogin, togglePwVisibility, logout } from './auth.js';
+import { logout, loginWithGoogle, confirmBindMember, cancelBindMember } from './auth.js';
 import {
   switchTab,
   openEditMember,
@@ -35,7 +35,6 @@ import {
   pinInputChanged,
   submitPin,
   closeManager,
-  saveMemberPassword,
   pickCardBg,
   pickAvatar,
   savePin,
@@ -58,9 +57,11 @@ export function bindEvents() {
   on('cfgConnectBtn', 'click', connectSupabase);
 
   // ── Login ──
-  bindEnter('loginPassword', attemptLogin);
-  on('loginEye', 'click', togglePwVisibility);
-  on('loginBtn', 'click', attemptLogin);
+  on('loginGoogleBtn', 'click', loginWithGoogle);
+
+  // ── Bind member modal (first-time Google login) ──
+  on('bindCancelBtn', 'click', cancelBindMember);
+  on('bindConfirmBtn', 'click', confirmBindMember);
 
   // ── Topbar ──
   on('topbarManagerBtn', 'click', openManagerEntry);
@@ -119,7 +120,12 @@ export function bindEvents() {
   // ── Modal backdrop close ──
   document.querySelectorAll('.modal-backdrop').forEach((el) => {
     el.addEventListener('click', (e) => {
-      if (e.target === el) el.classList.remove('open');
+      if (e.target !== el) return;
+      if (el.id === 'bindMemberModal') {
+        cancelBindMember();
+      } else {
+        el.classList.remove('open');
+      }
     });
   });
   on('pinModal', 'click', (e) => {
@@ -153,8 +159,6 @@ export function bindEvents() {
       pickCardBg(t.dataset.mid);
     } else if (a === 'pick-avatar') {
       pickAvatar(t.dataset.mid);
-    } else if (a === 'save-pw') {
-      saveMemberPassword(t.dataset.mid);
     } else if (a === 'delete-achievement') {
       deleteAchievement(t.dataset.aid);
     } else if (a === 'toggle-ach') {
