@@ -96,3 +96,8 @@
   padding: 0 2px;
   line-height: 1.5;
 }
+/* Bind modal must sit above #loginPage (z-index 997) since it opens
+   on top of the login page during first-time Google sign-in. */
+#bindMemberModal {
+  z-index: 1000;
+}
