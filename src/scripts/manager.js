@@ -2,7 +2,6 @@ import { state } from './state.js';
 import { COLORS } from './constants.js';
 import { esc, ini, showToast } from './utils.js';
 import { getPin } from './config.js';
-import { localRefresh } from './supabase-client.js';
 
 // ── PIN gate ──
 export function openManagerEntry() {
@@ -71,11 +70,8 @@ export function renderManagerPage() {
           <button class="mgr-photo-btn" data-action="pick-card-bg" data-mid="${esc(String(m.id))}">🖼 Card background<br><span style="font-size:10px;opacity:0.6">750 × 390 px</span></button>
           <button class="mgr-photo-btn" data-action="pick-avatar" data-mid="${esc(String(m.id))}">👤 Profile photo<br><span style="font-size:10px;opacity:0.6">400 × 400 px</span></button>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;padding:4px 0 2px;">
-          <input class="form-input" type="text" placeholder="Set password" value="${m.password || ''}"
-            id="pw-${m.id}" style="background:var(--bg3);font-size:14px;padding:8px 10px;"
-            autocomplete="off">
-          <button class="mgr-photo-btn" style="flex-shrink:0;white-space:nowrap" data-action="save-pw" data-mid="${esc(String(m.id))}">Save PW</button>
+        <div style="font-size:12px;color:var(--text3);padding:4px 0 2px;">
+          ${m.google_email ? `🔗 ${esc(m.google_email)}` : '⚠ Not linked to a Google account yet'}
         </div>
       </div>`;
     list.appendChild(row);
@@ -85,26 +81,6 @@ export function renderManagerPage() {
       '<p style="color:var(--text3);font-size:14px;padding:8px 0;">No members yet.</p>';
   renderAchMgrList();
   renderAchMemberUnlocks();
-}
-
-export async function saveMemberPassword(memberId) {
-  const input = document.getElementById('pw-' + memberId);
-  if (!input) return;
-  const pw = input.value.trim();
-  if (!pw) {
-    showToast('Password cannot be empty');
-    return;
-  }
-  try {
-    const { data: row } = await state.sb.from('members').select('data').eq('id', memberId).single();
-    const blob = row ? row.data || {} : {};
-    blob.password = pw;
-    await state.sb.from('members').update({ data: blob }).eq('id', memberId);
-    localRefresh(memberId, blob);
-    showToast('Password updated!');
-  } catch (err) {
-    showToast('Error: ' + err.message);
-  }
 }
 
 export function pickCardBg(memberId) {

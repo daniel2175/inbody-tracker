@@ -38,6 +38,8 @@ export const state = {
   vLastTap: 0,
   // Check-in popup transient
   checkinCtx: null, // {memberId, dateKey, el}
+  // Auth session pending member-binding (first-time Google login)
+  pendingAuthSession: null,
 };
 
 export { DEFAULT_PIN };

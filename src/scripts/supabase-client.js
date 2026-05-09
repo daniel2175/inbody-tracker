@@ -3,7 +3,7 @@ import { state } from './state.js';
 import { showCfgErr } from './config.js';
 import { showToast } from './utils.js';
 import { hideSplashNow } from './splash.js';
-import { showLoginPage } from './auth.js';
+import { showLoginPage, openBindMemberModal } from './auth.js';
 import { renderMemberList, renderMemberDetail } from './members.js';
 import { renderAchievements } from './achievements.js';
 import { renderAchMgrList, renderAchMemberUnlocks } from './manager.js';
@@ -63,8 +63,41 @@ export function initSb(cfg) {
           await loadAchievements();
           subscribeRT();
           subscribeAchievementsRT();
+
+          // Resolve auth state from existing Supabase session (PWA reopen,
+          // OAuth redirect-back). SDK auto-persists session via localStorage.
+          let pendingBindSession = null;
+          const {
+            data: { session },
+          } = await state.sb.auth.getSession();
+          if (session?.user) {
+            const matched = state.members.find((m) => m.auth_user_id === session.user.id);
+            if (matched) {
+              state.loggedInMemberId = matched.id;
+              applyLoggedInUI();
+            } else {
+              pendingBindSession = session;
+            }
+          }
+
+          // Listen for future auth events (post-OAuth-redirect SIGNED_IN, SIGNED_OUT).
+          state.sb.auth.onAuthStateChange(async (event, sess) => {
+            if (event === 'SIGNED_IN' && sess?.user) {
+              const matched = state.members.find((m) => m.auth_user_id === sess.user.id);
+              if (matched) {
+                state.loggedInMemberId = matched.id;
+                applyLoggedInUI();
+              } else {
+                openBindMemberModal(sess);
+              }
+            }
+          });
+
           hideSplashNow(() => {
-            if (!state.loggedInMemberId) showLoginPage();
+            if (!state.loggedInMemberId) {
+              showLoginPage();
+              if (pendingBindSession) openBindMemberModal(pendingBindSession);
+            }
           }, splashStart);
         });
       });
@@ -89,27 +122,21 @@ export async function loadMembers() {
     ...(r.data || {}),
   }));
 
-  // Auto-login restoration
-  const savedId = localStorage.getItem('logged_in_id');
-  if (savedId && !state.loggedInMemberId) {
-    const stillExists = state.members.find(m => String(m.id) === String(savedId));
-    if (stillExists) {
-      state.loggedInMemberId = savedId;
-    } else {
-      localStorage.removeItem('logged_in_id');
-    }
-  }
-
+  // If already logged in (e.g., realtime update), keep current view in sync.
   if (state.loggedInMemberId) {
-    document.getElementById('loginPage').classList.remove('show');
-    document.getElementById('app').classList.add('visible');
-    renderMemberList();
-    if (state.currentMemberId) {
-      const m = state.members.find((x) => x.id === state.currentMemberId);
-      if (m) renderMemberDetail(m);
-    }
+    applyLoggedInUI();
   }
   return true;
+}
+
+function applyLoggedInUI() {
+  document.getElementById('loginPage').classList.remove('show');
+  document.getElementById('app').classList.add('visible');
+  renderMemberList();
+  if (state.currentMemberId) {
+    const m = state.members.find((x) => x.id === state.currentMemberId);
+    if (m) renderMemberDetail(m);
+  }
 }
 
 export async function loadAchievements() {
