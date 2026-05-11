@@ -179,11 +179,14 @@ export function subscribeRT() {
 
 // Apply a saved blob to local state and re-render immediately, no network round-trip
 export function localRefresh(memberId, newBlob) {
-  const idx = state.members.findIndex((x) => x.id === memberId);
+  // memberId may arrive as a string (DOM data-mid attribute) while state.members[i].id
+  // and state.currentMemberId are numbers from Supabase. Normalize to string for compare.
+  const mid = String(memberId);
+  const idx = state.members.findIndex((x) => String(x.id) === mid);
   if (idx < 0) return;
   Object.assign(state.members[idx], newBlob);
   renderMemberList();
-  if (state.currentMemberId === memberId) {
+  if (String(state.currentMemberId) === mid) {
     const m = state.members[idx];
     if (state.currentTab === 'inbody') renderMonths(m);
     else renderCalendarFromPending(m);
