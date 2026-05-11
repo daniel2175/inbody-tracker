@@ -6,7 +6,7 @@
 }
 .ach-wrapper {
   padding: 16px;
-  padding-bottom: calc(var(--safe-bottom)+24px);
+  padding-bottom: calc(var(--safe-bottom) + 24px);
   display: flex;
   flex-direction: column;
   gap: 10px;
